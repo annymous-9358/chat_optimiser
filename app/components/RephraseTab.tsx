@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useHistory } from '../context/HistoryContext';
 
 const TONES = [
   { id: 'professional_formal',        label: 'Pro Formal',       emoji: '🏢', desc: 'Executive emails' },
@@ -24,12 +25,12 @@ const APPROACH_COLORS = [
 
 type Session = { id: string; message: string; tone: string; suggestions: string[] };
 type Props = {
-  onSave: (msg: string, toneId: string, toneName: string, toneEmoji: string, suggestions: string[]) => void;
   loadSession?: Session | null;
   onSessionLoaded?: () => void;
 };
 
-export default function RephraseTab({ onSave, loadSession, onSessionLoaded }: Props) {
+export default function RephraseTab({ loadSession, onSessionLoaded }: Props) {
+  const { saveEntry } = useHistory();
   const [message, setMessage] = useState('');
   const [tone, setTone] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -74,13 +75,19 @@ export default function RephraseTab({ onSave, loadSession, onSessionLoaded }: Pr
       setSuggestions(data.suggestions);
       setShowResults(true);
       const t = TONES.find((x) => x.id === tone);
-      onSave(message, tone, t?.label ?? tone, t?.emoji ?? '💬', data.suggestions);
+      saveEntry({
+        type: 'rephrase',
+        emoji: t?.emoji ?? '💬',
+        label: t?.label ?? tone,
+        preview: message.slice(0, 60),
+        data: { message, tone, toneName: t?.label ?? tone, toneEmoji: t?.emoji ?? '💬', suggestions: data.suggestions },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [message, tone, onSave]);
+  }, [message, tone, saveEntry]);
 
   const handleCopy = useCallback((text: string, i: number) => {
     navigator.clipboard.writeText(text).then(() => {

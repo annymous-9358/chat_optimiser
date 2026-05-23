@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(mkdir -p /Users/kunikjain/Desktop/chat_optimiser/app/lib /Users/kunikjain/Desktop/chat_optimiser/app/context /Users/kunikjain/Desktop/chat_optimiser/app/api/history/\\\\[id\\\\])"
     ]
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useHistory } from '../context/HistoryContext';
 
 const ACTIONS = [
   { id: 'shorten', label: 'Shorten',      emoji: '✂️',  desc: 'Cut the fluff',        color: 'hover:border-rose-400 hover:bg-rose-50',    active: 'border-rose-400 bg-rose-50 shadow-md scale-105' },
@@ -12,6 +13,7 @@ const ACTIONS = [
 ];
 
 export default function PolishTab() {
+  const { saveEntry } = useHistory();
   const [message, setMessage] = useState('');
   const [activeAction, setActiveAction] = useState('');
   const [result, setResult] = useState('');
@@ -34,12 +36,20 @@ export default function PolishTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data.result);
+      const action = ACTIONS.find((a) => a.id === actionId);
+      saveEntry({
+        type: 'polish',
+        emoji: action?.emoji ?? '🛠️',
+        label: action?.label ?? actionId,
+        preview: message.slice(0, 60),
+        data: { message, action: actionId, result: data.result },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(null);
     }
-  }, [message]);
+  }, [message, saveEntry]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(result).then(() => {

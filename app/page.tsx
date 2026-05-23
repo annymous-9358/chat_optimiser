@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { useHistory, HistoryEntry } from './context/HistoryContext';
 import RephraseTab from './components/RephraseTab';
 import QuickReplyTab from './components/QuickReplyTab';
 import ToneAnalyzerTab from './components/ToneAnalyzerTab';
@@ -9,22 +10,12 @@ import StandupTab from './components/StandupTab';
 
 type Tab = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup';
 
-type Session = {
-  id: string;
-  timestamp: number;
-  message: string;
-  tone: string;
-  toneName: string;
-  toneEmoji: string;
-  suggestions: string[];
-};
-
-const TABS: { id: Tab; label: string; emoji: string; desc: string; accent: string }[] = [
-  { id: 'rephrase',   label: 'Rephrase',      emoji: '✨', desc: 'Rewrite in any tone',      accent: 'from-indigo-600 to-violet-600' },
-  { id: 'quickreply', label: 'Quick Reply',   emoji: '💬', desc: 'Smart reply suggestions',   accent: 'from-cyan-500 to-blue-500' },
-  { id: 'analyzer',   label: 'Tone Check',    emoji: '🔍', desc: 'Analyse message tone',      accent: 'from-emerald-500 to-teal-500' },
-  { id: 'polish',     label: 'Polish',        emoji: '🛠️', desc: 'Fix, shorten, expand…',    accent: 'from-amber-500 to-orange-500' },
-  { id: 'standup',    label: 'Standup',       emoji: '📋', desc: 'Daily DSM + timesheet',     accent: 'from-purple-600 to-indigo-600' },
+const TABS: { id: Tab; label: string; emoji: string; desc: string }[] = [
+  { id: 'rephrase',   label: 'Rephrase',    emoji: '✨', desc: 'Rewrite in any tone'    },
+  { id: 'quickreply', label: 'Quick Reply', emoji: '💬', desc: 'Smart reply suggestions' },
+  { id: 'analyzer',   label: 'Tone Check',  emoji: '🔍', desc: 'Analyse message tone'   },
+  { id: 'polish',     label: 'Polish',      emoji: '🛠️', desc: 'Fix, shorten, expand…'  },
+  { id: 'standup',    label: 'Standup',     emoji: '📋', desc: 'Daily DSM + timesheet'   },
 ];
 
 const TAB_ACTIVE: Record<Tab, string> = {
@@ -33,6 +24,20 @@ const TAB_ACTIVE: Record<Tab, string> = {
   analyzer:   'border-emerald-500 text-emerald-700 bg-emerald-50',
   polish:     'border-amber-500 text-amber-700 bg-amber-50',
   standup:    'border-purple-500 text-purple-700 bg-purple-50',
+};
+
+const TYPE_LABEL_COLORS: Record<string, string> = {
+  rephrase:   'text-indigo-600',
+  quickreply: 'text-cyan-600',
+  analyzer:   'text-emerald-600',
+  polish:     'text-amber-600',
+};
+
+const TYPE_TAB_NAMES: Record<string, string> = {
+  rephrase:   'Rephrase',
+  quickreply: 'Quick Reply',
+  analyzer:   'Tone Check',
+  polish:     'Polish',
 };
 
 function timeAgo(ts: number): string {
@@ -45,58 +50,113 @@ function timeAgo(ts: number): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+type LoadableSession = { id: string; message: string; tone: string; suggestions: string[] };
+
+const REPLY_APPROACH = ['✅ Agreeable', '↔️ Neutral', '🚫 Declining'];
+
+function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => void }) {
+  const d = entry.data;
+
+  if (entry.type === 'rephrase') {
+    const suggestions = (d.suggestions as string[]) ?? [];
+    return (
+      <div className="px-4 pb-4 pt-2 space-y-2 bg-slate-50 border-t border-slate-100">
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Original</p>
+        <p className="text-xs text-slate-500 italic bg-white rounded-lg p-2 border border-slate-100">
+          {d.message as string}
+        </p>
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-2">Suggestions</p>
+        {suggestions.map((s, i) => (
+          <div key={i} className="bg-white rounded-lg p-2.5 text-xs text-slate-700 leading-relaxed border border-slate-100">
+            <span className="font-bold text-indigo-500 mr-1">{i + 1}.</span>{s}
+          </div>
+        ))}
+        <button
+          onClick={onLoad}
+          className="w-full mt-1 text-xs py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold transition"
+        >
+          Load this session →
+        </button>
+      </div>
+    );
+  }
+
+  if (entry.type === 'quickreply') {
+    const replies = (d.replies as string[]) ?? [];
+    return (
+      <div className="px-4 pb-4 pt-2 space-y-2 bg-slate-50 border-t border-slate-100">
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Message Received</p>
+        <p className="text-xs text-slate-500 italic bg-white rounded-lg p-2 border border-slate-100">
+          {d.receivedMessage as string}
+        </p>
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-2">Replies</p>
+        {replies.map((r, i) => (
+          <div key={i} className="bg-white rounded-lg p-2.5 text-xs text-slate-700 leading-relaxed border border-slate-100">
+            <span className="font-bold text-cyan-500 mr-1">{REPLY_APPROACH[i]}:</span> {r}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (entry.type === 'analyzer') {
+    const analysis = d.analysis as { verdict?: string; tags?: string[] };
+    return (
+      <div className="px-4 pb-4 pt-2 space-y-2 bg-slate-50 border-t border-slate-100">
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Verdict</p>
+        <p className="text-xs text-slate-600 bg-white rounded-lg p-2 border border-slate-100 leading-relaxed">
+          {analysis?.verdict}
+        </p>
+        {(analysis?.tags?.length ?? 0) > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {analysis?.tags?.map((tag) => (
+              <span key={tag} className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (entry.type === 'polish') {
+    const orig = (d.message as string) ?? '';
+    const res  = (d.result  as string) ?? '';
+    return (
+      <div className="px-4 pb-4 pt-2 space-y-2 bg-slate-50 border-t border-slate-100">
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Original</p>
+        <p className="text-xs text-slate-500 italic bg-white rounded-lg p-2 border border-slate-100">
+          {orig.slice(0, 120)}{orig.length > 120 ? '…' : ''}
+        </p>
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-2">Result</p>
+        <p className="text-xs text-slate-700 bg-white rounded-lg p-2 border border-amber-100 leading-relaxed">
+          {res.slice(0, 200)}{res.length > 200 ? '…' : ''}
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('rephrase');
-  const [history, setHistory] = useState<Session[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [loadedSession, setLoadedSession] = useState<Session | null>(null);
+  const [loadedSession, setLoadedSession] = useState<LoadableSession | null>(null);
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('rephrase_history');
-      if (stored) setHistory(JSON.parse(stored));
-    } catch {}
-  }, []);
+  const { entries, loading: historyLoading, deleteEntry, clearAll } = useHistory();
 
-  const saveToHistory = useCallback(
-    (msg: string, toneId: string, toneName: string, toneEmoji: string, suggestions: string[]) => {
-      const session: Session = {
-        id: Date.now().toString(),
-        timestamp: Date.now(),
-        message: msg,
-        tone: toneId,
-        toneName,
-        toneEmoji,
-        suggestions,
-      };
-      setHistory((prev) => {
-        const updated = [session, ...prev].slice(0, 30);
-        localStorage.setItem('rephrase_history', JSON.stringify(updated));
-        return updated;
-      });
-    },
-    []
-  );
-
-  const deleteSession = useCallback((id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setHistory((prev) => {
-      const updated = prev.filter((s) => s.id !== id);
-      localStorage.setItem('rephrase_history', JSON.stringify(updated));
-      return updated;
+  const handleLoadSession = useCallback((entry: HistoryEntry) => {
+    if (entry.type !== 'rephrase') return;
+    const d = entry.data;
+    setLoadedSession({
+      id: entry.id,
+      message: d.message as string,
+      tone: d.tone as string,
+      suggestions: d.suggestions as string[],
     });
-    setExpandedId((cur) => (cur === id ? null : cur));
-  }, []);
-
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    localStorage.removeItem('rephrase_history');
-    setExpandedId(null);
-  }, []);
-
-  const loadSession = useCallback((session: Session) => {
-    setLoadedSession(session);
     setActiveTab('rephrase');
     setHistoryOpen(false);
   }, []);
@@ -124,9 +184,9 @@ export default function Home() {
           >
             <span>🕐</span>
             History
-            {history.length > 0 && (
+            {entries.length > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${historyOpen ? 'bg-white/20 text-white' : 'bg-indigo-500 text-white'}`}>
-                {history.length}
+                {entries.length}
               </span>
             )}
           </button>
@@ -157,7 +217,7 @@ export default function Home() {
 
           {/* Tab content */}
           <div key={activeTab} className="fade-in-up">
-            {activeTab === 'rephrase'   && <RephraseTab onSave={saveToHistory} loadSession={loadedSession} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'rephrase'   && <RephraseTab loadSession={loadedSession} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'quickreply' && <QuickReplyTab />}
             {activeTab === 'analyzer'   && <ToneAnalyzerTab />}
             {activeTab === 'polish'     && <PolishTab />}
@@ -180,11 +240,15 @@ export default function Home() {
               <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50 flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-slate-700">History</span>
-                  <span className="text-xs text-slate-400">({history.length})</span>
+                  {historyLoading ? (
+                    <span className="text-xs text-slate-400 animate-pulse">syncing…</span>
+                  ) : (
+                    <span className="text-xs text-slate-400">({entries.length})</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
-                  {history.length > 0 && (
-                    <button onClick={clearHistory} className="text-xs text-red-400 hover:text-red-600 transition font-medium">
+                  {entries.length > 0 && (
+                    <button onClick={clearAll} className="text-xs text-red-400 hover:text-red-600 transition font-medium">
                       Clear all
                     </button>
                   )}
@@ -195,57 +259,50 @@ export default function Home() {
               </div>
 
               <div className="overflow-y-auto flex-1 lg:max-h-[calc(100vh-12rem)]">
-                {history.length === 0 ? (
+                {entries.length === 0 ? (
                   <div className="px-4 py-12 text-center text-slate-400 text-sm">
                     <div className="text-4xl mb-3">📭</div>
-                    No sessions yet.<br />
-                    <span className="text-xs">Your rephrasings will appear here.</span>
+                    No history yet.<br />
+                    <span className="text-xs">Actions across all tabs appear here.</span>
                   </div>
                 ) : (
                   <div className="divide-y divide-slate-100">
-                    {history.map((session) => (
-                      <div key={session.id}>
+                    {entries.map((entry) => (
+                      <div key={entry.id}>
                         <button
-                          onClick={() => setExpandedId(expandedId === session.id ? null : session.id)}
+                          onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
                           className="w-full text-left px-4 py-3 hover:bg-slate-50 transition group/row"
                         >
                           <div className="flex items-start gap-2.5">
-                            <span className="text-lg flex-shrink-0 mt-0.5">{session.toneEmoji}</span>
+                            <span className="text-lg flex-shrink-0 mt-0.5">{entry.emoji}</span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-1 mb-0.5">
-                                <span className="text-xs font-semibold text-indigo-600 truncate">{session.toneName}</span>
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className={`text-xs font-semibold truncate ${TYPE_LABEL_COLORS[entry.type] ?? 'text-slate-600'}`}>
+                                    {entry.label}
+                                  </span>
+                                  <span className="text-[9px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">
+                                    {TYPE_TAB_NAMES[entry.type] ?? entry.type}
+                                  </span>
+                                </div>
                                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  <span className="text-[10px] text-slate-400">{timeAgo(session.timestamp)}</span>
+                                  <span className="text-[10px] text-slate-400">{timeAgo(entry.timestamp)}</span>
                                   <button
-                                    onClick={(e) => deleteSession(session.id, e)}
+                                    onClick={(e) => { e.stopPropagation(); deleteEntry(entry.id); setExpandedId((cur) => cur === entry.id ? null : cur); }}
                                     className="text-slate-300 hover:text-red-400 transition text-base leading-none opacity-0 group-hover/row:opacity-100"
                                   >×</button>
                                 </div>
                               </div>
-                              <p className="text-xs text-slate-500 truncate">{session.message}</p>
+                              <p className="text-xs text-slate-500 truncate">{entry.preview}</p>
                             </div>
                           </div>
                         </button>
 
-                        {expandedId === session.id && (
-                          <div className="px-4 pb-4 pt-2 space-y-2 bg-slate-50 border-t border-slate-100">
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Original</p>
-                            <p className="text-xs text-slate-500 italic bg-white rounded-lg p-2 border border-slate-100">
-                              {session.message}
-                            </p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-2">Suggestions</p>
-                            {session.suggestions.map((s, i) => (
-                              <div key={i} className="bg-white rounded-lg p-2.5 text-xs text-slate-700 leading-relaxed border border-slate-100">
-                                <span className="font-bold text-indigo-500 mr-1">{i + 1}.</span>{s}
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => loadSession(session)}
-                              className="w-full mt-1 text-xs py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-semibold transition"
-                            >
-                              Load this session →
-                            </button>
-                          </div>
+                        {expandedId === entry.id && (
+                          <ExpandedEntry
+                            entry={entry}
+                            onLoad={entry.type === 'rephrase' ? () => handleLoadSession(entry) : undefined}
+                          />
                         )}
                       </div>
                     ))}

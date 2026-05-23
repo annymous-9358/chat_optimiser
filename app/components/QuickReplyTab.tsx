@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useHistory } from '../context/HistoryContext';
 
 const RELATIONSHIPS = [
   { id: 'boss',      label: 'Boss',      emoji: '👔' },
@@ -18,6 +19,7 @@ const APPROACH_META = [
 ];
 
 export default function QuickReplyTab() {
+  const { saveEntry } = useHistory();
   const [received, setReceived] = useState('');
   const [relationship, setRelationship] = useState('');
   const [context, setContext] = useState('');
@@ -44,12 +46,20 @@ export default function QuickReplyTab() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setReplies(data.replies);
       setShowResults(true);
+      const rel = RELATIONSHIPS.find((r) => r.id === relationship);
+      saveEntry({
+        type: 'quickreply',
+        emoji: rel?.emoji ?? '💬',
+        label: rel?.label ?? relationship,
+        preview: received.slice(0, 60),
+        data: { receivedMessage: received, relationship, context, replies: data.replies },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [received, relationship, context]);
+  }, [received, relationship, context, saveEntry]);
 
   const handleCopy = (text: string, i: number) => {
     navigator.clipboard.writeText(text).then(() => {

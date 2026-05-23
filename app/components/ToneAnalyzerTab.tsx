@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useHistory } from '../context/HistoryContext';
 
 type Analysis = {
   primary: string;
@@ -30,6 +31,7 @@ const PRIMARY_COLORS: Record<string, string> = {
 };
 
 export default function ToneAnalyzerTab() {
+  const { saveEntry } = useHistory();
   const [message, setMessage] = useState('');
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,12 +54,19 @@ export default function ToneAnalyzerTab() {
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setAnalysis(data.analysis);
       setTimeout(() => setAnimate(true), 50);
+      saveEntry({
+        type: 'analyzer',
+        emoji: '🔍',
+        label: data.analysis.primary,
+        preview: message.slice(0, 60),
+        data: { message, analysis: data.analysis },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [message]);
+  }, [message, saveEntry]);
 
   const primaryColor = analysis
     ? PRIMARY_COLORS[analysis.primary] ?? 'bg-slate-100 text-slate-700 border-slate-300'
