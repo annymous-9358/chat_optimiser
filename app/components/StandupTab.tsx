@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
+import { useHistory } from '../context/HistoryContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Task = { text: string; hours: string };
@@ -38,7 +39,6 @@ function fmtDay(s: string) {
 function sumHours(tasks: Task[]) {
   return tasks.reduce((s, t) => s + (parseFloat(t.hours) || 0), 0);
 }
-// Migrate old string[] entries from localStorage
 function migrateTask(t: Task | string): Task {
   if (typeof t === 'string') return { text: t, hours: '' };
   return t;
@@ -115,39 +115,28 @@ function TaskList({
       e.preventDefault(); remove(i); setTimeout(() => refs.current[i - 1]?.focus(), 50);
     }
   };
-
   const total = sumHours(tasks);
 
   return (
     <div className="space-y-2.5">
-      {/* Column header */}
       <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-0.5">
         <span className="flex-1">Task description</span>
         <span className="w-14 text-center">{isToday ? 'Est.' : 'Actual'}</span>
         <span className="w-4" />
       </div>
-
       {tasks.map((task, i) => (
         <div key={i} className="flex items-center gap-2 group/task">
           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dotColor}`} />
           <input
-            ref={(el) => { refs.current[i] = el; }}
-            value={task.text}
-            onChange={(e) => updateText(i, e.target.value)}
-            onKeyDown={(e) => onKeyDown(e, i)}
+            ref={el => { refs.current[i] = el; }}
+            value={task.text} onChange={e => updateText(i, e.target.value)} onKeyDown={e => onKeyDown(e, i)}
             placeholder={`Task ${i + 1}…`}
             className="flex-1 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none border-b border-transparent focus:border-slate-300 transition py-0.5 min-w-0"
           />
-          {/* Hours input */}
           <div className="flex items-center gap-0.5 flex-shrink-0">
             <input
-              type="number"
-              value={task.hours}
-              onChange={(e) => updateHours(i, e.target.value)}
-              placeholder="0"
-              min="0"
-              max="24"
-              step="0.5"
+              type="number" value={task.hours} onChange={e => updateHours(i, e.target.value)}
+              placeholder="0" min="0" max="24" step="0.5"
               className={`w-12 text-center text-xs font-semibold rounded-lg border py-1.5 focus:outline-none focus:ring-1 transition
                 ${task.hours
                   ? (isToday ? 'border-violet-300 bg-violet-50 text-violet-700 focus:ring-violet-300' : 'border-indigo-300 bg-indigo-50 text-indigo-700 focus:ring-indigo-300')
@@ -155,14 +144,9 @@ function TaskList({
             />
             <span className={`text-xs font-medium ${task.hours ? (isToday ? 'text-violet-500' : 'text-indigo-500') : 'text-slate-400'}`}>h</span>
           </div>
-          <button
-            onClick={() => remove(i)}
-            className="opacity-0 group-hover/task:opacity-100 text-slate-300 hover:text-red-400 transition text-base leading-none flex-shrink-0 w-4"
-          >×</button>
+          <button onClick={() => remove(i)} className="opacity-0 group-hover/task:opacity-100 text-slate-300 hover:text-red-400 transition text-base leading-none flex-shrink-0 w-4">×</button>
         </div>
       ))}
-
-      {/* Footer row */}
       <div className="flex items-center justify-between pt-1">
         <button
           onClick={add}
@@ -182,11 +166,35 @@ function TaskList({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function StandupTab() {
+  const { entries, saveEntry, deleteEntry } = useHistory();
+
+  // Derive standup history from the global HistoryContext (type='standup').
+  const history: StandupEntry[] = useMemo(() =>
+    entries
+      .filter(e => e.type === 'standup')
+      .map(e => {
+        const d = e.data as Record<string, unknown>;
+        return {
+          id:             e.id,
+          date:           d.date           as string,
+          project:        d.project        as string,
+          yesterdayTasks: (d.yesterdayTasks as (Task | string)[]).map(migrateTask),
+          todayTasks:     (d.todayTasks     as (Task | string)[]).map(migrateTask),
+          blockers:       d.blockers        as string,
+          format:         d.format          as string,
+          formatted:      d.formatted       as string,
+          savedAt:        d.savedAt         as number,
+        };
+      })
+      .sort((a, b) => b.date.localeCompare(a.date)),
+    [entries]
+  );
+
   const [view, setView]   = useState<'form' | 'timesheet'>('form');
   const [date, setDate]   = useState(todayStr());
   const [project, setProject] = useState('');
   const [yesterdayTasks, setYesterdayTasks] = useState<Task[]>([{ text: '', hours: '' }]);
-  const [todayTasks, setTodayTasks]         = useState<Task[]>([{ text: '', hours: '' }]);
+  const [todayTasks,     setTodayTasks]     = useState<Task[]>([{ text: '', hours: '' }]);
   const [blockers, setBlockers] = useState('');
   const [format, setFormat]     = useState<'standard' | 'detailed' | 'concise'>('standard');
   const [formatted, setFormatted] = useState('');
@@ -194,32 +202,16 @@ export default function StandupTab() {
   const [error, setError]       = useState('');
   const [copied, setCopied]     = useState(false);
   const [savedId, setSavedId]   = useState<string | null>(null);
-  const [history, setHistory]   = useState<StandupEntry[]>([]);
   const [exportStart, setExportStart] = useState(weekAgoStr());
   const [exportEnd, setExportEnd]     = useState(todayStr());
   const [expandedId, setExpandedId]   = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem('standup_history');
-      if (s) {
-        const parsed: StandupEntry[] = JSON.parse(s);
-        // Migrate old string[] format
-        setHistory(parsed.map((e) => ({
-          ...e,
-          yesterdayTasks: (e.yesterdayTasks as (Task | string)[]).map(migrateTask),
-          todayTasks:     (e.todayTasks     as (Task | string)[]).map(migrateTask),
-        })));
-      }
-    } catch {}
-  }, []);
 
   const yTotal = sumHours(yesterdayTasks);
   const tTotal = sumHours(todayTasks);
 
   const handleGenerate = useCallback(async () => {
-    const yT = yesterdayTasks.filter((t) => t.text.trim());
-    const tT = todayTasks.filter((t) => t.text.trim());
+    const yT = yesterdayTasks.filter(t => t.text.trim());
+    const tT = todayTasks.filter(t => t.text.trim());
     if (!yT.length && !tT.length) { setError('Add at least one task.'); return; }
     setError(''); setLoading(true); setFormatted(''); setSavedId(null);
     try {
@@ -231,21 +223,30 @@ export default function StandupTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setFormatted(data.formatted);
-      const entry: StandupEntry = {
-        id: Date.now().toString(), date, project,
-        yesterdayTasks: yT, todayTasks: tT, blockers, format,
-        formatted: data.formatted, savedAt: Date.now(),
-      };
-      setHistory((prev) => {
-        const updated = [entry, ...prev.filter((e) => e.date !== date)].sort((a, b) => b.date.localeCompare(a.date));
-        localStorage.setItem('standup_history', JSON.stringify(updated));
-        return updated;
+
+      // Delete any existing entry for the same date (no duplicates per day).
+      const existing = entries.find(e => e.type === 'standup' && (e.data as Record<string, unknown>).date === date);
+      if (existing) deleteEntry(existing.id);
+
+      // Save to global history (persisted to DB via HistoryContext).
+      const saved = await saveEntry({
+        type:    'standup',
+        emoji:   '📋',
+        label:   fmtDate(date),
+        preview: (yT[0]?.text || tT[0]?.text || 'Standup').slice(0, 60),
+        data: {
+          date, project,
+          yesterdayTasks: yT, todayTasks: tT,
+          blockers, format,
+          formatted: data.formatted,
+          savedAt: Date.now(),
+        },
       });
-      setSavedId(entry.id);
+      setSavedId(saved.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally { setLoading(false); }
-  }, [yesterdayTasks, todayTasks, blockers, project, date, format]);
+  }, [yesterdayTasks, todayTasks, blockers, project, date, format, entries, saveEntry, deleteEntry]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(formatted).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
@@ -260,27 +261,23 @@ export default function StandupTab() {
     setFormatted(e.formatted); setSavedId(e.id); setView('form');
   };
 
-  const deleteEntry = (id: string, ev: React.MouseEvent) => {
+  const handleDelete = (id: string, ev: React.MouseEvent) => {
     ev.stopPropagation();
-    setHistory((prev) => {
-      const updated = prev.filter((x) => x.id !== id);
-      localStorage.setItem('standup_history', JSON.stringify(updated));
-      return updated;
-    });
+    deleteEntry(id); // uses HistoryContext → fires DB DELETE
+    if (savedId === id) setSavedId(null);
   };
 
-  const filteredEntries = history.filter((e) => e.date >= exportStart && e.date <= exportEnd);
+  const filteredEntries = history.filter(e => e.date >= exportStart && e.date <= exportEnd);
 
   const exportCSV = () => {
     if (!filteredEntries.length) { alert('No entries in the selected date range.'); return; }
-    // Per-task rows for proper timesheet upload
     const header = ['Date', 'Day', 'Project', 'Type', 'Task Description', 'Hours', 'Status'];
     const rows: string[][] = [];
-    filteredEntries.forEach((e) => {
-      e.yesterdayTasks.forEach((t) => rows.push([e.date, fmtDay(e.date), e.project || '', 'Yesterday', t.text, t.hours || '', 'Completed']));
-      e.todayTasks.forEach((t)     => rows.push([e.date, fmtDay(e.date), e.project || '', 'Today',     t.text, t.hours || '', 'Planned']));
+    filteredEntries.forEach(e => {
+      e.yesterdayTasks.forEach(t => rows.push([e.date, fmtDay(e.date), e.project || '', 'Yesterday', t.text, t.hours || '', 'Completed']));
+      e.todayTasks.forEach(t =>     rows.push([e.date, fmtDay(e.date), e.project || '', 'Today',     t.text, t.hours || '', 'Planned']));
     });
-    const csv = [header, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -298,7 +295,7 @@ export default function StandupTab() {
     <div className="space-y-4 sm:space-y-5">
       {/* View toggle */}
       <div className="flex gap-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
-        {(['form', 'timesheet'] as const).map((v) => (
+        {(['form', 'timesheet'] as const).map(v => (
           <button key={v} onClick={() => setView(v)}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all ${view === v ? 'bg-purple-600 text-white shadow' : 'text-slate-500 hover:bg-slate-50'}`}>
             {v === 'form' ? '📝' : '📊'} <span className="capitalize">{v === 'form' ? 'New Standup' : 'Timesheet'}</span>
@@ -312,20 +309,18 @@ export default function StandupTab() {
       {/* ── FORM VIEW ── */}
       {view === 'form' && (
         <div className="space-y-4 sm:space-y-5 fade-in-up">
-          {/* Meta row */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Date</label>
-                <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+                <input type="date" value={date} onChange={e => setDate(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Project / Team</label>
-                <input type="text" value={project} onChange={(e) => setProject(e.target.value)} placeholder="e.g. Platform, Mobile…"
+                <input type="text" value={project} onChange={e => setProject(e.target.value)} placeholder="e.g. Platform, Mobile…"
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
               </div>
-              {/* Auto-calculated total */}
               <div>
                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Hours Summary</label>
                 <div className="rounded-xl border border-purple-100 bg-purple-50 px-3 py-2.5 flex items-center justify-between">
@@ -348,7 +343,6 @@ export default function StandupTab() {
             </div>
           </div>
 
-          {/* Tasks — per-task hours */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
               <div className="flex items-center gap-2 mb-4">
@@ -366,22 +360,20 @@ export default function StandupTab() {
             </div>
           </div>
 
-          {/* Blockers */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🚧</span>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Blockers <span className="normal-case font-normal">(optional)</span></label>
             </div>
-            <input type="text" value={blockers} onChange={(e) => setBlockers(e.target.value)}
+            <input type="text" value={blockers} onChange={e => setBlockers(e.target.value)}
               placeholder="Waiting on design review, blocked by infra issue…"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
           </div>
 
-          {/* Format selector */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">DSM Format Style</label>
             <div className="grid grid-cols-3 gap-3">
-              {FORMAT_OPTIONS.map((f) => (
+              {FORMAT_OPTIONS.map(f => (
                 <button key={f.id} onClick={() => setFormat(f.id as typeof format)}
                   className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-3 sm:p-4 text-center transition-all duration-150 ${
                     format === f.id ? 'border-purple-500 bg-purple-50 scale-[1.03] shadow-md' : 'border-slate-200 bg-slate-50 hover:border-purple-300 hover:bg-purple-50'
@@ -395,9 +387,9 @@ export default function StandupTab() {
             <p className="mt-3 text-xs text-slate-400 flex items-start gap-1.5">
               <span>ℹ️</span>
               <span>
-                {format === 'standard' && 'Professional bullet points with action verbs — good for most DSM portals. Hours shown per task.'}
-                {format === 'detailed' && 'Full sentences with context — ideal for HR/formal portals requiring detail. Time shown in brackets.'}
-                {format === 'concise'  && 'Ultra-brief format — great for Slack standup bots or short text fields. Hours inline.'}
+                {format === 'standard' && 'Professional bullet points with action verbs — good for most DSM portals.'}
+                {format === 'detailed' && 'Full sentences with context — ideal for HR/formal portals requiring detail.'}
+                {format === 'concise'  && 'Ultra-brief format — great for Slack standup bots or short text fields.'}
               </span>
             </p>
           </div>
@@ -423,7 +415,6 @@ export default function StandupTab() {
 
           {loading && <div className="skeleton h-44 w-full" />}
 
-          {/* Output */}
           {formatted && (
             <div className="bg-white rounded-2xl border border-purple-200 shadow-sm overflow-hidden fade-in-up">
               <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100 flex-wrap gap-2">
@@ -455,12 +446,12 @@ export default function StandupTab() {
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <label className="text-xs text-slate-500 font-medium whitespace-nowrap">From</label>
-                <input type="date" value={exportStart} onChange={(e) => setExportStart(e.target.value)}
+                <input type="date" value={exportStart} onChange={e => setExportStart(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
               </div>
               <div className="flex items-center gap-2">
                 <label className="text-xs text-slate-500 font-medium whitespace-nowrap">To</label>
-                <input type="date" value={exportEnd} onChange={(e) => setExportEnd(e.target.value)}
+                <input type="date" value={exportEnd} onChange={e => setExportEnd(e.target.value)}
                   className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
               </div>
               <span className={`text-xs px-2 py-1 rounded-full font-semibold ${filteredEntries.length ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'}`}>
@@ -540,8 +531,8 @@ export default function StandupTab() {
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center justify-center gap-2">
-                                <button onClick={(ev) => { ev.stopPropagation(); loadEntry(entry); }} className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition">Edit</button>
-                                <button onClick={(ev) => deleteEntry(entry.id, ev)} className="text-xs text-red-400 hover:text-red-600 transition opacity-0 group-hover:opacity-100">Del</button>
+                                <button onClick={ev => { ev.stopPropagation(); loadEntry(entry); }} className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold transition">Edit</button>
+                                <button onClick={ev => handleDelete(entry.id, ev)} className="text-xs text-red-400 hover:text-red-600 transition opacity-0 group-hover:opacity-100">Del</button>
                               </div>
                             </td>
                           </tr>

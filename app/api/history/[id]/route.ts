@@ -1,23 +1,17 @@
-import { createClient } from '@supabase/supabase-js';
-
-function getClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
-}
+import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/server';
 
 export async function DELETE(
   _: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = getClient();
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
-  if (supabase) {
-    const { error } = await supabase.from('chat_history').delete().eq('id', id);
-    if (error) console.error('[history/:id DELETE]', error.message);
-  }
+  // RLS ensures the row belongs to the authenticated user.
+  const { error } = await supabase.from('chat_history').delete().eq('id', id);
+  if (error) console.error('[history/:id DELETE]', error.message);
 
   return Response.json({ ok: true });
 }

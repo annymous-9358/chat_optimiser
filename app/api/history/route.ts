@@ -1,25 +1,26 @@
 import { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/server';
 
-// Build client per-request so hot-reloads / new env vars always take effect.
-function getClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key);
+async function getAuthedClient() {
+  const cookieStore = await cookies();
+  return createClient(cookieStore);
 }
 
-export async function GET(req: NextRequest) {
-  const sessionId = req.nextUrl.searchParams.get('sessionId');
-  const supabase = getClient();
-  if (!sessionId || !supabase) return Response.json({ entries: [] });
+export async function GET() {
+  const supabase = await getAuthedClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.warn('[history GET] No authenticated user');
+    return Response.json({ entries: [] });
+  }
 
   const { data, error } = await supabase
     .from('chat_history')
     .select('id, type, timestamp, emoji, label, preview, data')
-    .eq('session_id', sessionId)
     .order('timestamp', { ascending: false })
-    .limit(60);
+    .limit(100);
 
   if (error) {
     console.error('[history GET]', error.message, error.code);
@@ -29,24 +30,26 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = getClient();
-  if (!supabase) {
-    console.warn('[history POST] Supabase not configured — using localStorage only');
-    return Response.json({ ok: true });
+  const supabase = await getAuthedClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.warn('[history POST] No authenticated user');
+    return Response.json({ ok: false }, { status: 401 });
   }
 
-  const { sessionId, entry } = await req.json();
-  if (!sessionId || !entry) return Response.json({ ok: false }, { status: 400 });
+  const { entry } = await req.json();
+  if (!entry) return Response.json({ ok: false }, { status: 400 });
 
   const { error } = await supabase.from('chat_history').upsert({
-    id: entry.id,
-    session_id: sessionId,
-    type: entry.type,
+    id:        entry.id,
+    user_id:   user.id,
+    type:      entry.type,
     timestamp: entry.timestamp,
-    emoji: entry.emoji,
-    label: entry.label,
-    preview: entry.preview,
-    data: entry.data,
+    emoji:     entry.emoji,
+    label:     entry.label,
+    preview:   entry.preview,
+    data:      entry.data,
   });
 
   if (error) {
@@ -56,15 +59,15 @@ export async function POST(req: NextRequest) {
   return Response.json({ ok: true });
 }
 
-export async function DELETE(req: NextRequest) {
-  const sessionId = req.nextUrl.searchParams.get('sessionId');
-  const supabase = getClient();
-  if (!sessionId || !supabase) return Response.json({ ok: true });
+export async function DELETE() {
+  const supabase = await getAuthedClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ ok: true });
 
   const { error } = await supabase
     .from('chat_history')
     .delete()
-    .eq('session_id', sessionId);
+    .eq('user_id', user.id);
 
   if (error) console.error('[history DELETE]', error.message);
   return Response.json({ ok: true });
