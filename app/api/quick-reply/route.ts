@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
+import { parseJSONArray } from '../_utils';
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -39,11 +40,7 @@ Write 3 different replies I could send back.`;
     });
 
     const text = response.choices[0]?.message?.content?.trim() ?? '';
-    const arrayMatch = text.match(/\[[\s\S]*\]/);
-    if (!arrayMatch) throw new Error('Could not parse response');
-
-    const replies: string[] = JSON.parse(arrayMatch[0]);
-    if (!Array.isArray(replies) || replies.length === 0) throw new Error('Invalid replies');
+    const replies = parseJSONArray(text);
 
     return Response.json({ replies: replies.slice(0, 3) });
   } catch (err) {

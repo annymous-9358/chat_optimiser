@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
+import { parseJSONArray } from '../_utils';
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -61,11 +62,7 @@ Format: ["version 1", "version 2", "version 3"]`;
     });
 
     const text = response.choices[0]?.message?.content?.trim() ?? '';
-    const arrayMatch = text.match(/\[[\s\S]*\]/);
-    if (!arrayMatch) throw new Error('Could not parse response');
-
-    const suggestions: string[] = JSON.parse(arrayMatch[0]);
-    if (!Array.isArray(suggestions) || suggestions.length === 0) throw new Error('Invalid suggestions');
+    const suggestions = parseJSONArray(text);
 
     return Response.json({ suggestions: suggestions.slice(0, 3) });
   } catch (err) {

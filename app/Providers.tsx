@@ -2,11 +2,14 @@
 
 import { AuthProvider }    from './context/AuthContext';
 import { HistoryProvider } from './context/HistoryContext';
+import { ThemeProvider }   from './context/ThemeContext';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <HistoryProvider>{children}</HistoryProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <HistoryProvider>{children}</HistoryProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

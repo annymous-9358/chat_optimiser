@@ -2,7 +2,13 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+
+  /* Design tokens */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06);
+  --shadow-btn:  0 4px 14px rgba(99,102,241,0.30);
+  --shadow-btn-hover: 0 6px 20px rgba(99,102,241,0.42);
 }
 
 @theme inline {
@@ -12,52 +18,276 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Dark mode not yet implemented — keep light defaults */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* ── App background ─────────────────────────────────────────────────────── */
+.app-bg {
+  min-height: 100vh;
+  background: #f4f5fb;
+  background-image:
+    radial-gradient(ellipse 80% 55% at 95% -5%,  rgba(99,102,241,0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 2%  100%, rgba(124,58,237,0.05) 0%, transparent 65%);
+}
+
+/* ── Glass morphism ─────────────────────────────────────────────────────── */
+.glass {
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ── Primary gradient button ─────────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  box-shadow: var(--shadow-btn);
+  transition: filter 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: var(--shadow-btn-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0px);
+  filter: brightness(0.97);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Selector chip button ────────────────────────────────────────────────── */
+.chip-active {
+  border-color: #818cf8 !important;
+  background: linear-gradient(135deg, #eef2ff, #ede9fe) !important;
+  color: #4338ca !important;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.12) !important;
+}
+.chip-btn:hover:not(.chip-active):not(:disabled) {
+  border-color: #c7d2fe;
+  background: rgba(238,242,255,0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+}
+
+/* ── Result card hover ───────────────────────────────────────────────────── */
+.result-card:hover {
+  border-color: rgba(165,180,252,0.6) !important;
+  box-shadow: var(--shadow-card-hover) !important;
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.fade-in-up {
-  animation: fadeInUp 0.22s ease-out both;
+.fade-in-up { animation: fadeInUp 0.26s cubic-bezier(0.22,1,0.36,1) both; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
+.fade-in { animation: fadeIn 0.2s ease both; }
 
 @keyframes shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
+  0%   { background-position: -700px 0; }
+  100% { background-position: 700px 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 800px 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 0.75rem;
+  background: linear-gradient(90deg, #f0f2f7 25%, #e6e9f0 50%, #f0f2f7 75%);
+  background-size: 1400px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 1rem;
 }
 
 @keyframes growBar {
   from { width: 0%; }
 }
-.grow-bar {
-  animation: growBar 0.7s cubic-bezier(.4,0,.2,1) both;
-}
+.grow-bar { animation: growBar 0.8s cubic-bezier(0.22,1,0.36,1) both; }
 
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.slide-in-right { animation: slideInRight 0.26s cubic-bezier(0.22,1,0.36,1) both; }
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.scale-in { animation: scaleIn 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Scrollbar hide ──────────────────────────────────────────────────────── */
 .scrollbar-hide { scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
+/* ── Gradient text ───────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-.slide-in-right {
-  animation: slideInRight 0.22s cubic-bezier(.4,0,.2,1) both;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK MODE
+   Applied by toggling class="dark" on <html>
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-card-hover: 0 4px 16px rgba(0,0,0,0.55), 0 12px 36px rgba(0,0,0,0.45);
+  --shadow-btn: 0 4px 14px rgba(99,102,241,0.45);
+  --shadow-btn-hover: 0 6px 22px rgba(99,102,241,0.55);
+}
+
+/* Body */
+html.dark body { background: #0b0f1a; color: #e2e8f0; }
+
+/* App background */
+html.dark .app-bg {
+  background: #0b0f1a;
+  background-image:
+    radial-gradient(ellipse 80% 55% at 95% -5%, rgba(99,102,241,0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 2% 100%, rgba(124,58,237,0.09) 0%, transparent 65%);
+}
+
+/* Glass header */
+html.dark .glass {
+  background: rgba(11,15,26,0.90) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+}
+
+/* ── Cards ── */
+html.dark .bg-white        { background-color: #161d2e !important; }
+html.dark .bg-white\/60    { background-color: rgba(22,29,46,0.75) !important; }
+html.dark .bg-white\/70    { background-color: rgba(22,29,46,0.85) !important; }
+html.dark .bg-white\/80    { background-color: rgba(22,29,46,0.90) !important; }
+html.dark .bg-white\/82    { background-color: rgba(22,29,46,0.92) !important; }
+
+/* ── Surface backgrounds ── */
+html.dark .bg-slate-50      { background-color: #111827 !important; }
+html.dark .bg-slate-50\/80  { background-color: rgba(17,24,39,0.80) !important; }
+html.dark .bg-slate-100     { background-color: rgba(255,255,255,0.07) !important; }
+
+/* ── Text ── */
+html.dark .text-slate-900  { color: #f1f5f9 !important; }
+html.dark .text-slate-800  { color: #e2e8f0 !important; }
+html.dark .text-slate-700  { color: #cbd5e1 !important; }
+html.dark .text-slate-600  { color: #94a3b8 !important; }
+html.dark .text-slate-500  { color: #64748b !important; }
+html.dark .text-slate-400  { color: #475569 !important; }
+html.dark .text-slate-300  { color: #2d3a52 !important; }
+
+/* ── Borders ── */
+html.dark .border-slate-200\/70  { border-color: rgba(255,255,255,0.07) !important; }
+html.dark .border-slate-200\/80  { border-color: rgba(255,255,255,0.08) !important; }
+html.dark .border-slate-200      { border-color: rgba(255,255,255,0.09) !important; }
+html.dark .border-slate-100\/80  { border-color: rgba(255,255,255,0.05) !important; }
+html.dark .border-slate-100      { border-color: rgba(255,255,255,0.05) !important; }
+html.dark .divide-slate-100\/80 > * + * { border-color: rgba(255,255,255,0.05) !important; }
+
+/* ── Inputs & textareas ── */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: rgba(22,29,46,0.85) !important;
+  border-color: rgba(255,255,255,0.09) !important;
+  color: #e2e8f0 !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #3d4f6b !important; }
+html.dark input:focus,
+html.dark textarea:focus {
+  background-color: rgba(22,29,46,1) !important;
+  border-color: rgba(99,102,241,0.55) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+}
+
+/* ── Indigo accent tones ── */
+html.dark .bg-indigo-50            { background-color: rgba(99,102,241,0.12) !important; }
+html.dark .bg-indigo-600           { background-color: #4f46e5 !important; }
+html.dark .text-indigo-700         { color: #a5b4fc !important; }
+html.dark .text-indigo-600         { color: #818cf8 !important; }
+html.dark .text-indigo-500         { color: #6366f1 !important; }
+html.dark .border-indigo-200       { border-color: rgba(99,102,241,0.25) !important; }
+html.dark .border-indigo-300       { border-color: rgba(99,102,241,0.35) !important; }
+html.dark .border-indigo-400       { border-color: rgba(99,102,241,0.5) !important; }
+
+/* ── Other accent overrides ── */
+html.dark .bg-red-50     { background-color: rgba(239,68,68,0.1) !important; }
+html.dark .bg-green-50   { background-color: rgba(34,197,94,0.1) !important; }
+html.dark .bg-amber-50   { background-color: rgba(245,158,11,0.1) !important; }
+html.dark .bg-orange-50  { background-color: rgba(249,115,22,0.1) !important; }
+html.dark .bg-blue-50    { background-color: rgba(59,130,246,0.1) !important; }
+html.dark .bg-emerald-50 { background-color: rgba(16,185,129,0.1) !important; }
+html.dark .text-green-700  { color: #4ade80 !important; }
+html.dark .text-amber-600  { color: #fbbf24 !important; }
+html.dark .text-red-700    { color: #f87171 !important; }
+html.dark .text-red-500    { color: #f87171 !important; }
+html.dark .text-red-400    { color: #f87171 !important; }
+html.dark .border-red-200  { border-color: rgba(239,68,68,0.25) !important; }
+
+/* ── Chip/selector buttons in dark ── */
+html.dark .chip-btn {
+  border-color: rgba(255,255,255,0.08) !important;
+  background: rgba(22,29,46,0.6) !important;
+}
+html.dark .chip-btn:hover:not(.chip-active):not(:disabled) {
+  background: rgba(99,102,241,0.08) !important;
+  border-color: rgba(99,102,241,0.3) !important;
+}
+html.dark .chip-active {
+  border-color: rgba(129,140,248,0.6) !important;
+  background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(124,58,237,0.18)) !important;
+  color: #a5b4fc !important;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.2) !important;
+}
+
+/* ── Tab bar ── */
+html.dark .tab-pill-inactive { color: #475569 !important; }
+html.dark .tab-pill-inactive:hover {
+  color: #94a3b8 !important;
+  background: rgba(255,255,255,0.05) !important;
+}
+
+/* ── Sidebar toggle ── */
+html.dark .bg-slate-100.rounded-xl { background: rgba(255,255,255,0.06) !important; }
+
+/* ── Button shadow override in dark ── */
+html.dark .shadow-indigo-200\/50 { box-shadow: 0 4px 14px rgba(99,102,241,0.4) !important; }
+html.dark .shadow-indigo-200\/40 { box-shadow: 0 4px 10px rgba(99,102,241,0.3) !important; }
+
+/* ── Standup table header ── */
+html.dark .bg-slate-800 { background-color: #0b0f1a !important; }
+html.dark .bg-slate-900 { background-color: #0d1424 !important; }
+
+/* ── Result card hover ── */
+html.dark .result-card:hover {
+  border-color: rgba(99,102,241,0.25) !important;
+  box-shadow: var(--shadow-card-hover) !important;
+}
+
+/* ── Skeleton in dark ── */
+html.dark .skeleton {
+  background: linear-gradient(90deg, #161d2e 25%, #1e2a42 50%, #161d2e 75%);
+  background-size: 1400px 100%;
 }

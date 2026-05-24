@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Refreshes the Supabase session cookies on every request so tokens never expire silently.
+// Refreshes the Supabase session cookies on every request so JWTs never expire silently.
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -17,14 +17,14 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
-  // Refresh session — MUST NOT be removed, keeps JWT alive.
+  // MUST NOT be removed — keeps the JWT session alive on every request.
   await supabase.auth.getUser();
 
   return supabaseResponse;

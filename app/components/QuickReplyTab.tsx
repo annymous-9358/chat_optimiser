@@ -13,29 +13,26 @@ const RELATIONSHIPS = [
 ];
 
 const APPROACH_META = [
-  { label: '✅ Agreeable',  color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
-  { label: '↔️ Neutral',    color: 'bg-blue-50 border-blue-200 text-blue-700' },
-  { label: '🚫 Declining',  color: 'bg-orange-50 border-orange-200 text-orange-700' },
+  { label: 'Agreeable',  color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+  { label: 'Neutral',    color: 'text-blue-600 bg-blue-50 border-blue-200' },
+  { label: 'Declining',  color: 'text-slate-600 bg-slate-100 border-slate-200' },
 ];
 
 export default function QuickReplyTab() {
   const { saveEntry } = useHistory();
-  const [received, setReceived] = useState('');
+  const [received,     setReceived]     = useState('');
   const [relationship, setRelationship] = useState('');
-  const [context, setContext] = useState('');
-  const [replies, setReplies] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [copied, setCopied] = useState<number | null>(null);
-  const [showResults, setShowResults] = useState(false);
+  const [context,      setContext]      = useState('');
+  const [replies,      setReplies]      = useState<string[]>([]);
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState('');
+  const [copied,       setCopied]       = useState<number | null>(null);
+  const [showResults,  setShowResults]  = useState(false);
 
   const handleGenerate = useCallback(async () => {
     if (!received.trim()) { setError('Paste the message you received.'); return; }
     if (!relationship) { setError('Select your relationship with the sender.'); return; }
-    setError('');
-    setLoading(true);
-    setShowResults(false);
-    setReplies([]);
+    setError(''); setLoading(true); setShowResults(false); setReplies([]);
     try {
       const res = await fetch('/api/quick-reply', {
         method: 'POST',
@@ -48,17 +45,13 @@ export default function QuickReplyTab() {
       setShowResults(true);
       const rel = RELATIONSHIPS.find((r) => r.id === relationship);
       saveEntry({
-        type: 'quickreply',
-        emoji: rel?.emoji ?? '💬',
-        label: rel?.label ?? relationship,
+        type: 'quickreply', emoji: rel?.emoji ?? '💬', label: rel?.label ?? relationship,
         preview: received.slice(0, 60),
         data: { receivedMessage: received, relationship, context, replies: data.replies },
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [received, relationship, context, saveEntry]);
 
   const handleCopy = (text: string, i: number) => {
@@ -69,81 +62,79 @@ export default function QuickReplyTab() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Received message */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-          Message You Received
+      <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
+        <label className="block text-xs font-medium text-slate-500 mb-2">
+          Message you received
         </label>
         <textarea
           value={received}
           onChange={(e) => setReceived(e.target.value)}
           placeholder="Paste the message someone sent you…"
           rows={3}
-          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 transition"
+          className="w-full resize-none rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
         />
       </div>
 
       {/* Relationship + Context */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-slate-200/70 p-5 space-y-4" style={{ boxShadow: 'var(--shadow-card)' }}>
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-            Who Sent It?
+          <label className="block text-xs font-medium text-slate-500 mb-2.5">
+            Who sent it?
           </label>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {RELATIONSHIPS.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setRelationship(r.id)}
-                className={`flex flex-col items-center gap-1.5 rounded-xl border-2 py-3 transition-all duration-150 ${
+                className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 transition-all duration-150 ${
                   relationship === r.id
-                    ? 'border-cyan-500 bg-cyan-50 scale-105 shadow-md'
-                    : 'border-slate-200 bg-slate-50 hover:border-cyan-300 hover:bg-cyan-50 hover:scale-[1.03]'
+                    ? 'border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-700'
                 }`}
               >
                 <span className="text-xl">{r.emoji}</span>
-                <span className={`text-[11px] font-semibold ${relationship === r.id ? 'text-cyan-700' : 'text-slate-700'}`}>
-                  {r.label}
-                </span>
+                <span className="text-[11px] font-medium">{r.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-            Context <span className="normal-case font-normal text-slate-400">(optional)</span>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5">
+            Context <span className="font-normal text-slate-400">(optional)</span>
           </label>
           <input
             type="text"
             value={context}
             onChange={(e) => setContext(e.target.value)}
             placeholder="e.g. deadline is tomorrow, I already said no once…"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 transition"
+            className="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
           />
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 flex items-center gap-2 fade-in-up">
-          <span>⚠️</span> {error}
+        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-3 text-sm text-red-700">
+          {error}
         </div>
       )}
 
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold text-lg shadow-lg hover:from-cyan-600 hover:to-blue-600 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-lg shadow-indigo-200/50 hover:from-indigo-600 hover:to-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
             Generating replies…
           </span>
-        ) : '💬 Generate Smart Replies'}
+        ) : 'Generate smart replies'}
       </button>
 
       {loading && (
@@ -153,29 +144,27 @@ export default function QuickReplyTab() {
       )}
 
       {showResults && replies.length > 0 && (
-        <div className="space-y-3 fade-in-up">
-          <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Reply Options</h2>
+        <div className="space-y-2.5 fade-in-up">
+          <h2 className="text-sm font-medium text-slate-700">Reply options</h2>
           {replies.map((r, i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-start gap-4 group hover:border-cyan-200 hover:shadow-md transition-all fade-in-up"
-              style={{ animationDelay: `${i * 0.07}s` }}
+              className="bg-white rounded-2xl border border-slate-200/70 p-4 flex items-start gap-3 group result-card transition-all duration-200 fade-in-up"
+              style={{ animationDelay: `${i * 0.06}s`, boxShadow: 'var(--shadow-card)' }}
             >
-              <div className="flex-shrink-0 flex flex-col items-center gap-1.5 pt-0.5">
-                <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${APPROACH_META[i].color}`}>
-                  {APPROACH_META[i].label}
-                </span>
-              </div>
-              <p className="flex-1 text-slate-700 leading-relaxed">{r}</p>
+              <span className={`flex-shrink-0 text-[10px] font-medium px-2 py-1 rounded border whitespace-nowrap mt-0.5 ${APPROACH_META[i].color}`}>
+                {APPROACH_META[i].label}
+              </span>
+              <p className="flex-1 text-sm text-slate-700 leading-relaxed">{r}</p>
               <button
                 onClick={() => handleCopy(r, i)}
-                className={`flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all ${
+                className={`flex-shrink-0 text-xs font-medium px-2.5 py-1.5 rounded-md border transition-all ${
                   copied === i
-                    ? 'bg-green-50 border-green-300 text-green-600 opacity-100'
-                    : 'opacity-0 group-hover:opacity-100 border-cyan-200 text-cyan-500 hover:bg-cyan-50'
+                    ? 'bg-green-50 border-green-200 text-green-700 opacity-100'
+                    : 'opacity-0 group-hover:opacity-100 border-slate-200 text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                {copied === i ? '✓ Copied' : 'Copy'}
+                {copied === i ? 'Copied' : 'Copy'}
               </button>
             </div>
           ))}

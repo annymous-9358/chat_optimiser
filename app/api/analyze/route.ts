@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
+import { parseJSONObject } from '../_utils';
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -39,10 +40,7 @@ Scores can overlap (a message can be both casual and emotional). Be accurate, no
     });
 
     const text = response.choices[0]?.message?.content?.trim() ?? '';
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('Could not parse response');
-
-    const analysis = JSON.parse(jsonMatch[0]);
+    const analysis = parseJSONObject(text);
     return Response.json({ analysis });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
