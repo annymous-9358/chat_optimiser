@@ -3,7 +3,17 @@
     "allow": [
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "Bash(mkdir -p /Users/kunikjain/Desktop/chat_optimiser/app/lib /Users/kunikjain/Desktop/chat_optimiser/app/context /Users/kunikjain/Desktop/chat_optimiser/app/api/history/\\\\[id\\\\])"
+      "Bash(mkdir -p /Users/kunikjain/Desktop/chat_optimiser/app/lib /Users/kunikjain/Desktop/chat_optimiser/app/context /Users/kunikjain/Desktop/chat_optimiser/app/api/history/\\\\[id\\\\])",
+      "Bash(npm run *)",
+      "Bash(kill 57029)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(sleep 3 && grep -E \"history|error|Error|is_deleted|column\" /tmp/nextdev.log 2>/dev/null | tail -20)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
