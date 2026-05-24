@@ -1,8 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 const ACTIONS: Record<string, string> = {
   shorten: 'Make this message shorter and more concise. Keep the key point only. Cut filler but keep it natural — not choppy.',
   expand: 'Expand this message with more context, warmth, or detail. Keep the original tone, just flesh it out.',
@@ -14,6 +12,7 @@ const ACTIONS: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { message, action } = await request.json();
     if (!message?.trim()) return Response.json({ error: 'Message is required' }, { status: 400 });
     if (!action || !ACTIONS[action]) return Response.json({ error: 'Invalid action' }, { status: 400 });

@@ -2,10 +2,9 @@ import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 import { parseJSONArray } from '../_utils';
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export async function POST(request: NextRequest) {
   try {
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { occasion, recipient, relationship, context, length, tone, customOccasion } = await request.json();
 
     const effectiveOccasion = occasion === 'Custom' ? customOccasion : occasion;

@@ -1,8 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 type Task = { text: string; hours: string };
 
 function fmtTaskLine(t: Task, isToday = false): string {
@@ -84,6 +82,7 @@ Output:
 
 export async function POST(request: NextRequest) {
   try {
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { yesterdayTasks, todayTasks, blockers, project, dateLabel, format = 'standard' } = await request.json();
 
     const yTasks = (yesterdayTasks as Task[]).filter((t) => t.text?.trim());

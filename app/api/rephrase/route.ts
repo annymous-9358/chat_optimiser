@@ -2,8 +2,6 @@ import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 import { parseJSONArray } from '../_utils';
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 const TONE_DESCRIPTIONS: Record<string, string> = {
   professional_formal: 'formal, polished business — structured and respectful, for executive emails or official correspondence',
   professional_conversational: 'professional but warm — approachable and real, like a colleague you actually like',
@@ -19,6 +17,7 @@ const TONE_DESCRIPTIONS: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { message, tone } = await request.json();
 
     if (!message?.trim()) return Response.json({ error: 'Message is required' }, { status: 400 });

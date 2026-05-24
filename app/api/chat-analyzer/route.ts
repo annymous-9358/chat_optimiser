@@ -2,8 +2,6 @@ import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 import { parseJSONArray, parseJSONObject } from '../_utils';
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 // Trim chat to a reasonable window — keep the most recent messages
 function trimChat(text: string, maxChars = 6000): string {
   const trimmed = text.trim();
@@ -17,6 +15,7 @@ function trimChat(text: string, maxChars = 6000): string {
 // mode = 'generate' → craft a reply/message based on chat context
 export async function POST(request: NextRequest) {
   try {
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const body = await request.json();
     const { chatText, mode, purpose, tone, otherPerson } = body;
 

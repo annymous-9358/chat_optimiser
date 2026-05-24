@@ -2,10 +2,9 @@ import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 import { parseJSONArray } from '../_utils';
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export async function POST(request: NextRequest) {
   try {
+    const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { receivedMessage, relationship, context } = await request.json();
 
     if (!receivedMessage?.trim()) return Response.json({ error: 'Message is required' }, { status: 400 });
