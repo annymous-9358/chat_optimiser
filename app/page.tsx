@@ -84,7 +84,6 @@ function timeAgo(ts: number): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-type LoadableSession = { id: string; message: string; tone: string; suggestions: string[] };
 const REPLY_APPROACH = ['Agreeable', 'Neutral', 'Declining'];
 
 // ── Auth page ─────────────────────────────────────────────────────────────────
@@ -277,6 +276,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
             </div>
           ))}
         </div>
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -294,6 +296,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
             ))}
           </div>
         )}
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -311,6 +316,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
           <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Result</p>
           <p className="text-xs text-slate-700 bg-white rounded-xl p-2.5 border border-slate-200/80 leading-relaxed">{res.slice(0, 200)}{res.length > 200 ? '…' : ''}</p>
         </div>
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -321,6 +329,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
       <div className="px-4 pb-4 pt-3 space-y-2 bg-slate-50/80 border-t border-slate-100">
         <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Formatted standup</p>
         <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed bg-white rounded-xl p-2.5 border border-slate-200/80 max-h-48 overflow-y-auto">{sd?.formatted}</pre>
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -334,6 +345,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
             <span className="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{cd.analysis.sentiment}</span>
           )}
           <p className="text-xs text-slate-700 bg-white rounded-xl p-2.5 border border-slate-200/80 leading-relaxed">{cd.analysis?.summary}</p>
+          <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+            Load session
+          </button>
         </div>
       );
     }
@@ -347,6 +361,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
             <span className="font-bold text-slate-300 mr-1">{i + 1}.</span>{m}
           </p>
         ))}
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -365,6 +382,9 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
             <span className="font-bold text-slate-300 mr-1">{i + 1}.</span>{m}
           </p>
         ))}
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -382,6 +402,52 @@ function ExpandedEntry({ entry, onLoad }: { entry: HistoryEntry; onLoad?: () => 
         {msgs.slice(0, 1).map((m, i) => (
           <p key={i} className="text-xs text-slate-700 bg-white rounded-xl p-2.5 border border-slate-200/80 leading-relaxed line-clamp-4">{m}</p>
         ))}
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
+      </div>
+    );
+  }
+
+  if (entry.type === 'emailsubject') {
+    const ed = d as { subjects?: string[]; purpose?: string };
+    const subjects = ed.subjects ?? [];
+    return (
+      <div className="px-4 pb-4 pt-3 space-y-2 bg-slate-50/80 border-t border-slate-100">
+        {ed.purpose && (
+          <p className="text-xs text-slate-500 italic">{ed.purpose.slice(0, 80)}</p>
+        )}
+        {subjects.slice(0, 3).map((s, i) => (
+          <p key={i} className="text-xs text-slate-700 bg-white rounded-xl p-2.5 border border-slate-200/80 leading-relaxed">
+            <span className="font-bold text-slate-300 mr-1">{i + 1}.</span>{s}
+          </p>
+        ))}
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
+      </div>
+    );
+  }
+
+  if (entry.type === 'emailwriter') {
+    const ed = d as { subject?: string; body?: string; purpose?: string };
+    return (
+      <div className="px-4 pb-4 pt-3 space-y-2.5 bg-slate-50/80 border-t border-slate-100">
+        {ed.subject && (
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Subject</p>
+            <p className="text-xs text-slate-700 font-semibold bg-white rounded-xl p-2.5 border border-slate-200/80">{ed.subject}</p>
+          </div>
+        )}
+        {ed.body && (
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1">Body preview</p>
+            <p className="text-xs text-slate-600 bg-white rounded-xl p-2.5 border border-slate-200/80 leading-relaxed line-clamp-3">{ed.body.slice(0, 150)}…</p>
+          </div>
+        )}
+        <button onClick={onLoad} className="w-full text-xs py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold shadow-md shadow-indigo-200/40 hover:from-indigo-600 hover:to-violet-700 transition-all">
+          Load session
+        </button>
       </div>
     );
   }
@@ -415,7 +481,7 @@ export default function Home() {
   const [historyOpen,   setHistoryOpen]   = useState(false);
   const [sidebarView,   setSidebarView]   = useState<SidebarView>('history');
   const [expandedId,    setExpandedId]    = useState<string | null>(null);
-  const [loadedSession, setLoadedSession] = useState<LoadableSession | null>(null);
+  const [loadedSession, setLoadedSession] = useState<HistoryEntry | null>(null);
 
   const {
     entries, loading: histLoading,
@@ -425,10 +491,8 @@ export default function Home() {
   } = useHistory();
 
   const handleLoadSession = useCallback((entry: HistoryEntry) => {
-    if (entry.type !== 'rephrase') return;
-    const d = entry.data;
-    setLoadedSession({ id: entry.id, message: d.message as string, tone: d.tone as string, suggestions: d.suggestions as string[] });
-    setActiveTab('rephrase');
+    setLoadedSession(entry);
+    setActiveTab(entry.type as Tab);
     setHistoryOpen(false);
   }, []);
 
@@ -545,16 +609,16 @@ export default function Home() {
 
           {/* ── Tab content ── */}
           <div key={activeTab} className="fade-in-up">
-            {activeTab === 'rephrase'        && <RephraseTab loadSession={loadedSession} onSessionLoaded={() => setLoadedSession(null)} />}
-            {activeTab === 'quickreply'      && <QuickReplyTab />}
-            {activeTab === 'analyzer'        && <ToneAnalyzerTab />}
-            {activeTab === 'polish'          && <PolishTab />}
-            {activeTab === 'standup'         && <StandupTab />}
-            {activeTab === 'chatanalyzer'    && <ChatAnalyzerTab />}
-            {activeTab === 'occasionmessage' && <OccasionMessageTab />}
-            {activeTab === 'giftmessage'     && <GiftMessageTab />}
-            {activeTab === 'emailsubject'    && <EmailSubjectTab />}
-            {activeTab === 'emailwriter'     && <EmailWriterTab />}
+            {activeTab === 'rephrase'        && <RephraseTab        loadSession={loadedSession?.type === 'rephrase'        ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'quickreply'      && <QuickReplyTab      loadSession={loadedSession?.type === 'quickreply'      ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'analyzer'        && <ToneAnalyzerTab    loadSession={loadedSession?.type === 'analyzer'        ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'polish'          && <PolishTab          loadSession={loadedSession?.type === 'polish'          ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'standup'         && <StandupTab         loadSession={loadedSession?.type === 'standup'         ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'chatanalyzer'    && <ChatAnalyzerTab    loadSession={loadedSession?.type === 'chatanalyzer'    ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'occasionmessage' && <OccasionMessageTab loadSession={loadedSession?.type === 'occasionmessage' ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'giftmessage'     && <GiftMessageTab     loadSession={loadedSession?.type === 'giftmessage'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'emailsubject'    && <EmailSubjectTab    loadSession={loadedSession?.type === 'emailsubject'    ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'emailwriter'     && <EmailWriterTab     loadSession={loadedSession?.type === 'emailwriter'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
           </div>
         </main>
 
@@ -682,7 +746,7 @@ export default function Home() {
                           {expandedId === entry.id && (
                             <ExpandedEntry
                               entry={entry}
-                              onLoad={entry.type === 'rephrase' ? () => handleLoadSession(entry) : undefined}
+                              onLoad={() => handleLoadSession(entry)}
                             />
                           )}
                         </div>

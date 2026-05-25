@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useMemo } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Task = { text: string; hours: string };
@@ -183,7 +183,12 @@ function TaskList({
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function StandupTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
   const { entries, saveEntry, deleteEntry } = useHistory();
 
   const history: StandupEntry[] = useMemo(() =>
@@ -225,6 +230,25 @@ export default function StandupTab() {
 
   const yTotal = sumHours(yesterdayTasks);
   const tTotal = sumHours(todayTasks);
+
+  // ── Load a session from history ────────────────────────────────────────────
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data as Record<string, unknown>;
+    setDate((d.date as string) ?? todayStr());
+    setProject((d.project as string) ?? '');
+    const yTasks = ((d.yesterdayTasks as (Task | string)[]) ?? []).map(migrateTask);
+    const tTasks = ((d.todayTasks as (Task | string)[]) ?? []).map(migrateTask);
+    setYesterdayTasks(yTasks.length ? yTasks : [{ text: '', hours: '' }]);
+    setTodayTasks(tTasks.length ? tTasks : [{ text: '', hours: '' }]);
+    setBlockers((d.blockers as string) ?? '');
+    setFormat(((d.format as 'standard' | 'detailed' | 'concise')) || 'standard');
+    setFormatted((d.formatted as string) ?? '');
+    setSavedId(loadSession.id);
+    setView('form');
+    onSessionLoaded?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadSession]);
 
   const handleGenerate = useCallback(async () => {
     const yT = yesterdayTasks.filter(t => t.text.trim());

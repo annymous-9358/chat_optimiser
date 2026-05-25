@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -41,7 +41,12 @@ const STYLES = [
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function GiftMessageTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function GiftMessageTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
 
   const [recipient,    setRecipient]    = useState('');
@@ -54,6 +59,26 @@ export default function GiftMessageTab() {
   const [error,        setError]        = useState('');
   const [messages,     setMessages]     = useState<string[]>([]);
   const [copied,       setCopied]       = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data as Record<string, unknown>;
+    setRecipient((d.recipient as string) ?? '');
+    const savedOccasion = (d.occasion as string) ?? '';
+    if (OCCASIONS.some(o => o.id === savedOccasion)) {
+      setOccasion(savedOccasion);
+      setCustomOccasion('');
+    } else if (savedOccasion) {
+      setOccasion('Custom');
+      setCustomOccasion(savedOccasion);
+    }
+    setRelationship((d.relationship as string) ?? '');
+    setPersonalNote((d.personalNote as string) ?? '');
+    setStyle((d.style as string) ?? 'heartfelt');
+    setMessages((d.messages as string[]) ?? []);
+    onSessionLoaded?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadSession]);
 
   const effectiveOccasion = occasion === 'Custom' ? customOccasion : occasion;
 

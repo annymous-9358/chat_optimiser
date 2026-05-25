@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -46,7 +46,12 @@ function sentimentBar(score: number) {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function ChatAnalyzerTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function ChatAnalyzerTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
 
   const [chatText,     setChatText]     = useState('');
@@ -60,6 +65,25 @@ export default function ChatAnalyzerTab() {
   const [messages,     setMessages]     = useState<string[]>([]);
   const [copied,       setCopied]       = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data as Record<string, unknown>;
+    const savedMode = (d.mode as Mode) ?? 'analyze';
+    setMode(savedMode);
+    setOtherPerson((d.otherPerson as string) ?? '');
+    if (savedMode === 'generate') {
+      setPurpose((d.purpose as string) ?? '');
+      setGenTone((d.tone as string) ?? 'warm');
+      setMessages((d.messages as string[]) ?? []);
+      setAnalysis(null);
+    } else {
+      setAnalysis((d.analysis as Analysis) ?? null);
+      setMessages([]);
+    }
+    onSessionLoaded?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadSession]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

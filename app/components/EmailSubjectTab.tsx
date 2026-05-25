@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -22,7 +22,12 @@ const TONES = [
   { id: 'friendly',     label: 'Friendly',     emoji: '👋' },
 ];
 
-export default function EmailSubjectTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
   const [body,        setBody]        = useState('');
   const [purpose,     setPurpose]     = useState('');
@@ -32,6 +37,17 @@ export default function EmailSubjectTab() {
   const [error,       setError]       = useState('');
   const [copied,      setCopied]      = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setBody((d.body as string) ?? '');
+    setPurpose((d.purpose as string) ?? '');
+    setTone((d.tone as string) ?? 'professional');
+    setSubjects((d.subjects as string[]) ?? []);
+    setShowResults(true);
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleGenerate = useCallback(async () => {
     if (!body.trim()) { setError('Paste your email body first.'); return; }

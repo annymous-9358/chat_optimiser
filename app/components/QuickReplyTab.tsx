@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -21,7 +21,12 @@ const APPROACH_META = [
   { label: 'Declining',  color: 'text-slate-600 bg-slate-100 border-slate-200' },
 ];
 
-export default function QuickReplyTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
   const [received,     setReceived]     = useState('');
   const [relationship, setRelationship] = useState('');
@@ -31,6 +36,17 @@ export default function QuickReplyTab() {
   const [error,        setError]        = useState('');
   const [copied,       setCopied]       = useState<number | null>(null);
   const [showResults,  setShowResults]  = useState(false);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setReceived((d.receivedMessage as string) ?? '');
+    setRelationship((d.relationship as string) ?? '');
+    setContext((d.context as string) ?? '');
+    setReplies((d.replies as string[]) ?? []);
+    setShowResults(true);
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleGenerate = useCallback(async () => {
     if (!received.trim()) { setError('Paste the message you received.'); return; }

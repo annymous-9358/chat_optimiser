@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -15,7 +15,12 @@ const ACTIONS = [
   { id: 'strip',   label: 'Strip Emojis',  emoji: '🚫',  desc: 'Clean text only' },
 ];
 
-export default function PolishTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function PolishTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
   const [message,      setMessage]      = useState('');
   const [activeAction, setActiveAction] = useState('');
@@ -23,6 +28,15 @@ export default function PolishTab() {
   const [loading,      setLoading]      = useState<string | null>(null);
   const [error,        setError]        = useState('');
   const [copied,       setCopied]       = useState(false);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setMessage((d.message as string) ?? '');
+    setActiveAction((d.action as string) ?? '');
+    setResult((d.result as string) ?? '');
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const runAction = useCallback(async (actionId: string) => {
     if (!message.trim()) { setError('Please enter a message first.'); return; }

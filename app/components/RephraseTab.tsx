@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -21,9 +21,8 @@ const TONES = [
 
 const APPROACH_LABELS = ['Direct', 'Natural', 'Creative'];
 
-type Session = { id: string; message: string; tone: string; suggestions: string[] };
 type Props = {
-  loadSession?: Session | null;
+  loadSession?: HistoryEntry | null;
   onSessionLoaded?: () => void;
 };
 
@@ -38,13 +37,13 @@ export default function RephraseTab({ loadSession, onSessionLoaded }: Props) {
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
-    if (loadSession) {
-      setMessage(loadSession.message);
-      setTone(loadSession.tone);
-      setSuggestions(loadSession.suggestions);
-      setShowResults(true);
-      onSessionLoaded?.();
-    }
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setMessage((d.message as string) ?? '');
+    setTone((d.tone as string) ?? '');
+    setSuggestions((d.suggestions as string[]) ?? []);
+    setShowResults(true);
+    onSessionLoaded?.();
   }, [loadSession, onSessionLoaded]);
 
   useEffect(() => {

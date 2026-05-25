@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 import ShareButton from './ShareButton';
@@ -45,7 +45,12 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
   );
 }
 
-export default function EmailWriterTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function EmailWriterTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
 
   const [purpose,       setPurpose]       = useState('');
@@ -58,6 +63,22 @@ export default function EmailWriterTab() {
   const [loading,       setLoading]       = useState(false);
   const [error,         setError]         = useState('');
   const [result,        setResult]        = useState<{ subject: string; body: string } | null>(null);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setPurpose((d.purpose as string) ?? '');
+    setRecipientName((d.recipientName as string) ?? '');
+    setRecipientRole((d.recipientRole as string) ?? '');
+    setSenderName((d.senderName as string) ?? '');
+    setKeyPoints((d.keyPoints as string) ?? '');
+    setTone((d.tone as string) ?? 'professional');
+    setLength((d.length as string) ?? 'standard');
+    if (d.subject && d.body) {
+      setResult({ subject: d.subject as string, body: d.body as string });
+    }
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleGenerate = useCallback(async () => {
     if (!purpose.trim()) { setError('Describe what this email is about.'); return; }

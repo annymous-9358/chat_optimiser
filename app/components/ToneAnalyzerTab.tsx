@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useHistory } from '../context/HistoryContext';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 import VoiceInput  from './VoiceInput';
 import SpeakButton from './SpeakButton';
 
@@ -22,13 +22,29 @@ const SCORE_META: Record<string, { label: string; bar: string }> = {
   formal:       { label: 'Formal',       bar: 'bg-indigo-500' },
 };
 
-export default function ToneAnalyzerTab() {
+type Props = {
+  loadSession?: HistoryEntry | null;
+  onSessionLoaded?: () => void;
+};
+
+export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
   const [message,  setMessage]  = useState('');
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
   const [animate,  setAnimate]  = useState(false);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setMessage((d.message as string) ?? '');
+    if (d.analysis) {
+      setAnalysis(d.analysis as Analysis);
+      setTimeout(() => setAnimate(true), 50);
+    }
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleAnalyze = useCallback(async () => {
     if (!message.trim()) { setError('Please enter a message to analyze.'); return; }
