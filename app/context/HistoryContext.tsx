@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { useAuth } from './AuthContext';
 
-export type TabType = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject';
+export type TabType = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject' | 'emailwriter';
 
 export type HistoryEntry = {
   id: string;
