@@ -2,6 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { useHistory } from '../context/HistoryContext';
+import VoiceInput  from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const RELATIONSHIPS = [
   { id: 'boss',      label: 'Boss',      emoji: '👔' },
@@ -65,9 +68,10 @@ export default function QuickReplyTab() {
     <div className="space-y-4">
       {/* Received message */}
       <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <label className="block text-xs font-medium text-slate-500 mb-2">
-          Message you received
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-medium text-slate-500">Message you received</label>
+          <VoiceInput onResult={(t) => setReceived((r) => r ? r + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           value={received}
           onChange={(e) => setReceived(e.target.value)}
@@ -156,16 +160,20 @@ export default function QuickReplyTab() {
                 {APPROACH_META[i].label}
               </span>
               <p className="flex-1 text-sm text-slate-700 leading-relaxed">{r}</p>
-              <button
-                onClick={() => handleCopy(r, i)}
-                className={`flex-shrink-0 text-xs font-medium px-2.5 py-1.5 rounded-md border transition-all ${
-                  copied === i
-                    ? 'bg-green-50 border-green-200 text-green-700 opacity-100'
-                    : 'opacity-0 group-hover:opacity-100 border-slate-200 text-slate-500 hover:bg-slate-50'
-                }`}
-              >
-                {copied === i ? 'Copied' : 'Copy'}
-              </button>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <SpeakButton text={r} />
+                <ShareButton text={r} />
+                <button
+                  onClick={() => handleCopy(r, i)}
+                  className={`text-xs font-medium px-2.5 py-1.5 rounded-md border transition-all ${
+                    copied === i
+                      ? 'bg-green-50 border-green-200 text-green-700'
+                      : 'opacity-0 group-hover:opacity-100 border-slate-200 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  {copied === i ? 'Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
           ))}
         </div>

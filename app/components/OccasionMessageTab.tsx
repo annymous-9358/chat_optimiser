@@ -2,6 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { useHistory } from '../context/HistoryContext';
+import VoiceInput  from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const OCCASIONS = [
@@ -234,10 +237,13 @@ export default function OccasionMessageTab() {
 
       {/* ── Context ── */}
       <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-          What to say / context
-          <span className="text-slate-400 font-normal normal-case tracking-normal ml-1">(optional — makes it personal)</span>
-        </label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            What to say / context
+            <span className="text-slate-400 font-normal normal-case tracking-normal ml-1">(optional)</span>
+          </label>
+          <VoiceInput onResult={(t) => setContext((c) => c ? c + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           value={context}
           onChange={e => setContext(e.target.value)}
@@ -324,7 +330,11 @@ export default function OccasionMessageTab() {
                     {i === 0 ? ' · Direct' : i === 1 ? ' · Alternate angle' : ' · Creative take'}
                   </span>
                 </div>
-                <CopyBtn text={msg} index={i} copied={copied} onCopy={handleCopy} />
+                <div className="flex items-center gap-1">
+                  <SpeakButton text={msg} />
+                  <ShareButton text={msg} />
+                  <CopyBtn text={msg} index={i} copied={copied} onCopy={handleCopy} />
+                </div>
               </div>
 
               {/* Message content */}

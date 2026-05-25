@@ -4,16 +4,17 @@ import { useState, useCallback } from 'react';
 import { useAuth, type OAuthProvider } from './context/AuthContext';
 import { useHistory, HistoryEntry, ArchivedEntry } from './context/HistoryContext';
 import { useTheme } from './context/ThemeContext';
-import RephraseTab       from './components/RephraseTab';
-import QuickReplyTab     from './components/QuickReplyTab';
-import ToneAnalyzerTab   from './components/ToneAnalyzerTab';
-import PolishTab         from './components/PolishTab';
-import StandupTab        from './components/StandupTab';
-import ChatAnalyzerTab   from './components/ChatAnalyzerTab';
-import GiftMessageTab    from './components/GiftMessageTab';
+import RephraseTab        from './components/RephraseTab';
+import QuickReplyTab      from './components/QuickReplyTab';
+import ToneAnalyzerTab    from './components/ToneAnalyzerTab';
+import PolishTab          from './components/PolishTab';
+import StandupTab         from './components/StandupTab';
+import ChatAnalyzerTab    from './components/ChatAnalyzerTab';
+import GiftMessageTab     from './components/GiftMessageTab';
 import OccasionMessageTab from './components/OccasionMessageTab';
+import EmailSubjectTab    from './components/EmailSubjectTab';
 
-type Tab         = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage';
+type Tab         = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject';
 type SidebarView = 'history' | 'archive';
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -49,6 +50,10 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     id: 'giftmessage', label: 'Gift Message',
     icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>,
   },
+  {
+    id: 'emailsubject', label: 'Email Subject',
+    icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+  },
 ];
 
 const TYPE_LABELS: Record<string, string> = {
@@ -60,6 +65,7 @@ const TYPE_LABELS: Record<string, string> = {
   chatanalyzer:    'Chat Insights',
   giftmessage:     'Gift Message',
   occasionmessage: 'Occasions',
+  emailsubject:    'Email Subject',
 };
 
 function timeAgo(ts: number): string {
@@ -135,7 +141,7 @@ function AuthPage() {
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xs font-bold tracking-tight shadow-lg shadow-indigo-200">
               CO
             </div>
-            <span className="text-base font-semibold text-slate-900">Chat Optimiser</span>
+            <span className="text-base font-semibold text-slate-900">ToneCraft</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 leading-tight">
             {mode === 'signin' ? 'Welcome back' : 'Create your account'}
@@ -453,7 +459,7 @@ export default function Home() {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 shadow-md shadow-indigo-200">
               CO
             </div>
-            <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">Chat Optimiser</span>
+            <span className="text-sm font-semibold text-slate-900 whitespace-nowrap">ToneCraft</span>
           </div>
 
           {/* Right side */}
@@ -541,6 +547,7 @@ export default function Home() {
             {activeTab === 'chatanalyzer'    && <ChatAnalyzerTab />}
             {activeTab === 'occasionmessage' && <OccasionMessageTab />}
             {activeTab === 'giftmessage'     && <GiftMessageTab />}
+            {activeTab === 'emailsubject'    && <EmailSubjectTab />}
           </div>
         </main>
 

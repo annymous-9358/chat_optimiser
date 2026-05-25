@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { useHistory } from '../context/HistoryContext';
+import VoiceInput  from './VoiceInput';
+import SpeakButton from './SpeakButton';
 
 type Analysis = {
   primary: string;
@@ -55,9 +57,10 @@ export default function ToneAnalyzerTab() {
     <div className="space-y-4">
       {/* Input */}
       <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <label className="block text-xs font-medium text-slate-500 mb-2">
-          Message to analyse
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-medium text-slate-500">Message to analyse</label>
+          <VoiceInput onResult={(t) => setMessage((m) => m ? m + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -109,7 +112,10 @@ export default function ToneAnalyzerTab() {
                 <span key={tag} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{tag}</span>
               ))}
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{analysis.verdict}</p>
+            <div className="flex items-start justify-between gap-2 mt-1">
+              <p className="text-sm text-slate-700 leading-relaxed flex-1">{analysis.verdict}</p>
+              <SpeakButton text={analysis.verdict} />
+            </div>
           </div>
 
           {/* Score bars */}

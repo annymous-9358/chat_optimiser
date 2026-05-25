@@ -2,6 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { useHistory } from '../context/HistoryContext';
+import VoiceInput  from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const ACTIONS = [
   { id: 'shorten', label: 'Shorten',       emoji: '✂️',  desc: 'Cut the fluff' },
@@ -61,9 +64,10 @@ export default function PolishTab() {
     <div className="space-y-4">
       {/* Input */}
       <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <label className="block text-xs font-medium text-slate-500 mb-2">
-          Your message
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-medium text-slate-500">Your message</label>
+          <VoiceInput onResult={(t) => setMessage((m) => m ? m + ' ' + t : t)} disabled={!!loading} />
+        </div>
         <div className="relative">
           <textarea
             value={message}
@@ -129,7 +133,9 @@ export default function PolishTab() {
         <div className="bg-white rounded-2xl border border-slate-200/70 p-5 fade-in-up" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-medium text-slate-500">Result</h3>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1.5">
+              <SpeakButton text={result} />
+              <ShareButton text={result} />
               <button
                 onClick={useResult}
                 className="text-xs font-medium px-2.5 py-1.5 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 transition"

@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useHistory } from '../context/HistoryContext';
+import VoiceInput  from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Mode = 'analyze' | 'generate';
@@ -224,9 +227,12 @@ export default function ChatAnalyzerTab() {
       {mode === 'generate' && (
         <>
           <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">
-              What do you want to say? <span className="text-red-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-slate-500">
+                What do you want to say? <span className="text-red-400">*</span>
+              </label>
+              <VoiceInput onResult={(t) => setPurpose((p) => p ? p + ' ' + t : t)} disabled={loading} />
+            </div>
             <textarea
               value={purpose}
               onChange={e => setPurpose(e.target.value)}
@@ -402,6 +408,10 @@ export default function ChatAnalyzerTab() {
                   <p className="text-xs font-medium text-indigo-500 mb-1.5">💡 You could send…</p>
                   <p className="text-sm text-indigo-800 leading-relaxed">{analysis.nextMessageIdea}</p>
                 </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <SpeakButton text={analysis.nextMessageIdea} />
+                  <ShareButton text={analysis.nextMessageIdea} />
+                </div>
                 <button
                   onClick={() => handleCopy(analysis.nextMessageIdea, 99)}
                   className="flex-shrink-0 text-indigo-400 hover:text-indigo-700 transition"
@@ -436,21 +446,25 @@ export default function ChatAnalyzerTab() {
                   </span>
                   <p className="text-sm text-slate-700 leading-relaxed">{msg}</p>
                 </div>
-                <button
-                  onClick={() => handleCopy(msg, i)}
-                  className="flex-shrink-0 text-slate-400 hover:text-indigo-600 transition"
-                  aria-label="Copy message"
-                >
-                  {copied === i ? (
-                    <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <SpeakButton text={msg} />
+                  <ShareButton text={msg} />
+                  <button
+                    onClick={() => handleCopy(msg, i)}
+                    className="flex-shrink-0 text-slate-400 hover:text-indigo-600 transition"
+                    aria-label="Copy message"
+                  >
+                    {copied === i ? (
+                      <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
