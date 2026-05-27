@@ -5,6 +5,7 @@ import { useHistory, HistoryEntry } from '../context/HistoryContext';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Task = { text: string; hours: string };
+type DayStatus = 'workday' | 'holiday' | 'leave';
 
 type StandupEntry = {
   id: string;
@@ -43,10 +44,70 @@ function migrateTask(t: Task | string): Task {
   if (typeof t === 'string') return { text: t, hours: '' };
   return t;
 }
+function isWeekend(dateStr: string): boolean {
+  const d = new Date(dateStr + 'T12:00:00').getDay();
+  return d === 0 || d === 6; // 0 = Sunday, 6 = Saturday
+}
+function getDatesInRange(start: string, end: string): string[] {
+  const dates: string[] = [];
+  const cur = new Date(start + 'T12:00:00');
+  const fin = new Date(end + 'T12:00:00');
+  while (cur <= fin) {
+    dates.push(cur.toISOString().split('T')[0]);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
+function getEffectiveDayType(
+  dateStr: string,
+  statuses: Record<string, DayStatus>,
+): 'weekend' | DayStatus {
+  if (isWeekend(dateStr)) return 'weekend';
+  return statuses[dateStr] ?? 'workday';
+}
+function getPreviousWorkingDay(dateStr: string, dayStatuses: Record<string, DayStatus>): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() - 1);
+  let prev = d.toISOString().split('T')[0];
+  while (getEffectiveDayType(prev, dayStatuses) !== 'workday') {
+    d.setDate(d.getDate() - 1);
+    prev = d.toISOString().split('T')[0];
+  }
+  return prev;
+}
 
 // ── Timesheet HTML ─────────────────────────────────────────────────────────────
-function generateTimesheetHTML(entries: StandupEntry[], start: string, end: string): string {
-  const grandTotal = entries.reduce((s, e) => s + sumHours(e.yesterdayTasks), 0);
+function generateTimesheetHTML(
+  entries: StandupEntry[],
+  start: string,
+  end: string,
+  dayStatuses: Record<string, DayStatus>,
+): string {
+  const allDates  = getDatesInRange(start, end);
+  const byDate: Record<string, StandupEntry> = {};
+  entries.forEach(e => { byDate[e.date] = e; });
+  const grandTotal = allDates
+    .filter(d => getEffectiveDayType(d, dayStatuses) === 'workday' && byDate[d])
+    .reduce((s, d) => s + sumHours(byDate[d].yesterdayTasks), 0);
+
+  const rowsHtml = allDates.map(dateStr => {
+    const dayType = getEffectiveDayType(dateStr, dayStatuses);
+    const e = byDate[dateStr];
+    if (dayType !== 'workday') {
+      const lbl = dayType === 'weekend' ? 'Weekend (Holiday)' : dayType === 'holiday' ? 'Holiday' : 'Leave';
+      const bg  = dayType === 'weekend' ? '#e2e8f0' : dayType === 'holiday' ? '#fee2e2' : '#ede9fe';
+      return `<tr style="background:${bg}"><td class="date-cell">${dateStr}</td><td class="day-cell">${fmtDay(dateStr)}</td><td colspan="3" style="color:#64748b;font-style:italic;text-align:center;font-size:10px">— ${lbl} —</td><td style="text-align:right;color:#94a3b8">—</td></tr>`;
+    }
+    if (!e) {
+      return `<tr><td class="date-cell">${dateStr}</td><td class="day-cell">${fmtDay(dateStr)}</td><td colspan="3" style="color:#94a3b8;font-style:italic;font-size:10px">No standup logged</td><td style="text-align:right;color:#94a3b8">—</td></tr>`;
+    }
+    const yTotal = sumHours(e.yesterdayTasks);
+    const standupHtml = e.formatted
+      ? `<pre style="white-space:pre-wrap;font-family:'Segoe UI',Arial,sans-serif;font-size:10.5px;line-height:1.6;margin:0;color:#1e293b">${e.formatted.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`
+      : e.yesterdayTasks.filter(t => t.text.trim()).map(t => `<div style="margin-bottom:3px">· ${t.text}${t.hours ? ` <span style="color:#4f46e5;font-weight:700">(${t.hours}h)</span>` : ''}</div>`).join('');
+    return `<tr><td class="date-cell">${dateStr}</td><td class="day-cell">${fmtDay(dateStr)}</td><td>${e.project || '—'}</td><td>${standupHtml}</td><td class="${e.blockers ? 'red' : ''}">${e.blockers || 'None'}</td><td style="text-align:right;font-weight:700;color:#4f46e5">${yTotal > 0 ? yTotal + 'h' : '—'}</td></tr>`;
+  }).join('\n');
+
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Standup Timesheet</title>
 <style>
@@ -57,41 +118,24 @@ function generateTimesheetHTML(entries: StandupEntry[], start: string, end: stri
   table{width:100%;border-collapse:collapse}
   thead th{background:#1e293b;color:#fff;padding:7px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px}
   tbody td{padding:7px 10px;border-bottom:1px solid #e5e7eb;vertical-align:top;font-size:10.5px}
-  tbody tr:nth-child(even){background:#f9fafb}
-  .task-row{display:flex;justify-content:space-between;gap:8px;margin-bottom:3px}
-  .task-desc{flex:1}.task-hrs{color:#4f46e5;font-weight:700;white-space:nowrap;min-width:30px;text-align:right}
-  .subtotal{border-top:1px solid #e5e7eb;margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;font-weight:700;color:#312e81;font-size:10px}
-  .red{color:#dc2626}
-  .date-cell{white-space:nowrap;font-weight:600;color:#1e1b4b}
-  .day-cell{color:#6b7280}
+  .red{color:#dc2626}.date-cell{white-space:nowrap;font-weight:600;color:#1e1b4b}.day-cell{color:#6b7280}
   tfoot td{padding:8px 10px;font-weight:700;background:#eef2ff}
-  .tfoot-label{text-align:right;color:#4f46e5}
-  .tfoot-val{color:#4f46e5;font-size:13px;font-weight:800;text-align:right}
-  @media print{thead th,tfoot td{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  .tfoot-label{text-align:right;color:#4f46e5}.tfoot-val{color:#4f46e5;font-size:13px;font-weight:800;text-align:right}
+  @media print{thead th,tfoot td{-webkit-print-color-adjust:exact;print-color-adjust:exact}tr{page-break-inside:avoid}}
 </style></head><body>
 <div class="hdr"><h1>Daily Standup Timesheet</h1>
 <p>Period: ${fmtDate(start)} — ${fmtDate(end)} &nbsp;|&nbsp; Generated: ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</p></div>
 <table><thead><tr>
   <th>Date</th><th>Day</th><th>Project</th>
-  <th>Yesterday Completed (Actual)</th><th>Today's Plan (Est.)</th>
+  <th>Generated Standup</th>
   <th>Blockers</th><th style="text-align:right">Hours</th>
 </tr></thead><tbody>
-${entries.map(e => {
-  const yTotal = sumHours(e.yesterdayTasks);
-  const tTotal = sumHours(e.todayTasks);
-  return `<tr>
-  <td class="date-cell">${e.date}</td><td class="day-cell">${fmtDay(e.date)}</td>
-  <td>${e.project || '—'}</td>
-  <td>${e.yesterdayTasks.map(t => `<div class="task-row"><span class="task-desc">${t.text}</span><span class="task-hrs">${t.hours ? t.hours + 'h' : '—'}</span></div>`).join('')}${yTotal > 0 ? `<div class="subtotal"><span>Total</span><span>${yTotal}h</span></div>` : ''}</td>
-  <td>${e.todayTasks.map(t => `<div class="task-row"><span class="task-desc">${t.text}</span><span class="task-hrs" style="color:#6d28d9">${t.hours ? t.hours + 'h est.' : '—'}</span></div>`).join('')}${tTotal > 0 ? `<div class="subtotal" style="color:#6d28d9"><span>Estimated</span><span>${tTotal}h</span></div>` : ''}</td>
-  <td class="${e.blockers ? 'red' : ''}">${e.blockers || 'None'}</td>
-  <td style="text-align:right;font-weight:700;color:#4f46e5">${yTotal > 0 ? yTotal + 'h' : '—'}</td>
-</tr>`;}).join('\n')}
+${rowsHtml}
 </tbody><tfoot><tr>
-  <td colspan="6" class="tfoot-label">Grand Total (Actual Hours Logged)</td>
+  <td colspan="5" class="tfoot-label">Grand Total (Actual Hours Logged — workdays only)</td>
   <td class="tfoot-val">${grandTotal}h</td>
 </tr></tfoot></table>
-<p style="margin-top:16px;font-size:9px;color:#9ca3af">Generated by Chat Optimiser</p>
+<p style="margin-top:16px;font-size:9px;color:#9ca3af">Generated by ToneCraft</p>
 </body></html>`;
 }
 
@@ -182,6 +226,41 @@ function TaskList({
   );
 }
 
+// ── Day Type Select ───────────────────────────────────────────────────────────
+function DayTypeSelect({
+  dateStr,
+  value,
+  onChange,
+}: {
+  dateStr: string;
+  value: DayStatus;
+  onChange: (date: string, status: DayStatus) => void;
+}) {
+  if (isWeekend(dateStr)) {
+    return (
+      <span className="text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+        Weekend
+      </span>
+    );
+  }
+  const cls: Record<DayStatus, string> = {
+    workday: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    holiday: 'bg-red-50    text-red-700    border-red-200',
+    leave:   'bg-violet-50 text-violet-700 border-violet-200',
+  };
+  return (
+    <select
+      value={value}
+      onChange={e => onChange(dateStr, e.target.value as DayStatus)}
+      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border cursor-pointer focus:outline-none transition-all ${cls[value]}`}
+    >
+      <option value="workday">Workday</option>
+      <option value="holiday">Holiday</option>
+      <option value="leave">Leave</option>
+    </select>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 type Props = {
   loadSession?: HistoryEntry | null;
@@ -227,6 +306,46 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
   const [exportStart,    setExportStart]    = useState(weekAgoStr());
   const [exportEnd,      setExportEnd]      = useState(todayStr());
   const [expandedId,     setExpandedId]     = useState<string | null>(null);
+  const [dayStatuses,    setDayStatuses]    = useState<Record<string, DayStatus>>({});
+
+  // Lookup map: date string → StandupEntry
+  const entryByDate = useMemo(() => {
+    const m: Record<string, StandupEntry> = {};
+    history.forEach(e => { m[e.date] = e; });
+    return m;
+  }, [history]);
+
+  // Unique project names from history for dropdown suggestions
+  const projectOptions = useMemo(() => {
+    const seen = new Set<string>();
+    history.forEach(e => { if (e.project?.trim()) seen.add(e.project.trim()); });
+    return Array.from(seen).sort();
+  }, [history]);
+
+  // All calendar dates in the current export range
+  const allDatesInRange = useMemo(
+    () => getDatesInRange(exportStart, exportEnd),
+    [exportStart, exportEnd],
+  );
+
+  const setDayStatus = useCallback((dateStr: string, status: DayStatus) => {
+    if (isWeekend(dateStr)) return;
+    setDayStatuses(prev => ({ ...prev, [dateStr]: status }));
+  }, []);
+
+  // Persist day statuses across page reloads
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('standup_day_statuses');
+      if (saved) setDayStatuses(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('standup_day_statuses', JSON.stringify(dayStatuses));
+    } catch {}
+  }, [dayStatuses]);
 
   const yTotal = sumHours(yesterdayTasks);
   const tTotal = sumHours(todayTasks);
@@ -301,29 +420,116 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
     if (savedId === id) setSavedId(null);
   };
 
-  const filteredEntries = history.filter(e => e.date >= exportStart && e.date <= exportEnd);
+  // Workday entries within the current export range (for totals)
+  const filteredEntries = useMemo(
+    () => allDatesInRange
+      .filter(d => getEffectiveDayType(d, dayStatuses) === 'workday')
+      .map(d => entryByDate[d])
+      .filter(Boolean) as StandupEntry[],
+    [allDatesInRange, dayStatuses, entryByDate],
+  );
 
-  const exportCSV = () => {
-    if (!filteredEntries.length) { alert('No entries in the selected date range.'); return; }
-    const header = ['Date', 'Day', 'Project', 'Type', 'Task Description', 'Hours', 'Status'];
-    const rows: string[][] = [];
-    filteredEntries.forEach(e => {
-      e.yesterdayTasks.forEach(t => rows.push([e.date, fmtDay(e.date), e.project || '', 'Yesterday', t.text, t.hours || '', 'Completed']));
-      e.todayTasks.forEach(t =>     rows.push([e.date, fmtDay(e.date), e.project || '', 'Today',     t.text, t.hours || '', 'Planned']));
+  const exportCSV = useCallback(() => {
+    if (!allDatesInRange.length) return;
+    const header = [
+      'Date', 'Day', 'Day Type', 'Project',
+      'Completed Tasks', 'Hours Logged',
+      'Planned Tasks', 'Hours Est.',
+      'Blockers',
+    ];
+    const rows: string[][] = allDatesInRange.map(dateStr => {
+      const dayType = getEffectiveDayType(dateStr, dayStatuses);
+      const e = entryByDate[dateStr];
+      if (dayType !== 'workday') {
+        const label = dayType === 'weekend' ? 'Weekend (Holiday)' : dayType === 'holiday' ? 'Holiday' : 'Leave';
+        return [dateStr, fmtDay(dateStr), label, '', '', '', '', '', ''];
+      }
+      if (!e) return [dateStr, fmtDay(dateStr), 'Workday', '', '', '', '', '', ''];
+      const completedTasks = e.yesterdayTasks.filter(t => t.text.trim())
+        .map(t => t.text + (t.hours ? ` (${t.hours}h)` : '')).join('; ');
+      const plannedTasks   = e.todayTasks.filter(t => t.text.trim())
+        .map(t => t.text + (t.hours ? ` (~${t.hours}h)` : '')).join('; ');
+      const hoursLogged = sumHours(e.yesterdayTasks);
+      const hoursEst    = sumHours(e.todayTasks);
+      return [
+        dateStr, fmtDay(dateStr), 'Workday', e.project || '',
+        completedTasks, hoursLogged ? String(hoursLogged) : '',
+        plannedTasks,   hoursEst    ? String(hoursEst)    : '',
+        e.blockers || '',
+      ];
     });
-    const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv  = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href = url; a.download = `standup-${exportStart}-to-${exportEnd}.csv`; a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [allDatesInRange, dayStatuses, entryByDate, exportStart, exportEnd]);
 
-  const printTimesheet = () => {
+  const exportMonthlyCSV = useCallback(() => {
+    if (!allDatesInRange.length) return;
+
+    // Build a date-keyed map so each calendar date appears exactly once,
+    // with workday entries placed under their previous-working-day date.
+    const rowMap = new Map<string, string[]>();
+
+    // First pass: seed all dates in range as weekend/holiday/empty-workday
+    allDatesInRange.forEach(dateStr => {
+      const dayType = getEffectiveDayType(dateStr, dayStatuses);
+      if (dayType !== 'workday') {
+        const label = dayType === 'weekend' ? 'Weekend (Holiday)' : dayType === 'holiday' ? 'Holiday' : 'Leave';
+        rowMap.set(dateStr, [dateStr, fmtDay(dateStr), label, '', '', '']);
+      } else {
+        rowMap.set(dateStr, [dateStr, fmtDay(dateStr), 'Workday', '', '', '']);
+      }
+    });
+
+    // Second pass: overlay standup entries under their task date (previous working day)
+    // Only place them if the task date falls within the selected range
+    allDatesInRange.forEach(dateStr => {
+      if (getEffectiveDayType(dateStr, dayStatuses) !== 'workday') return;
+      const entry = entryByDate[dateStr];
+      if (!entry) return;
+
+      const taskDate = getPreviousWorkingDay(dateStr, dayStatuses);
+      // Skip if the computed task date falls outside the chosen range
+      if (taskDate < exportStart || taskDate > exportEnd) return;
+
+      const completedTasks = entry.yesterdayTasks.filter(t => t.text.trim());
+      const completedText  = completedTasks.length
+        ? completedTasks.map(t => `• ${t.text}${t.hours ? ` (${t.hours}h)` : ''}`).join('\n')
+        : '—';
+      const hoursLogged = sumHours(entry.yesterdayTasks);
+
+      rowMap.set(taskDate, [
+        taskDate, fmtDay(taskDate), 'Workday',
+        entry.project || '',
+        completedText,
+        hoursLogged ? String(hoursLogged) : '',
+      ]);
+    });
+
+    // Sort by date so rows are always chronological
+    const rows = Array.from(rowMap.values()).sort((a, b) => a[0].localeCompare(b[0]));
+    const header = ['Date', 'Day', 'Day Type', 'Project', 'Completed Tasks', 'Hours Logged'];
+
+    const csv  = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `monthly-upload-${exportStart}-to-${exportEnd}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  }, [allDatesInRange, dayStatuses, entryByDate, exportStart, exportEnd]);
+
+  const printTimesheet = useCallback(() => {
     if (!filteredEntries.length) { alert('No entries in the selected date range.'); return; }
     const win = window.open('', '_blank');
-    if (win) { win.document.write(generateTimesheetHTML(filteredEntries, exportStart, exportEnd)); win.document.close(); setTimeout(() => win.print(), 400); }
-  };
+    if (win) {
+      win.document.write(generateTimesheetHTML(history.filter(e => e.date >= exportStart && e.date <= exportEnd), exportStart, exportEnd, dayStatuses));
+      win.document.close();
+      setTimeout(() => win.print(), 400);
+    }
+  }, [filteredEntries.length, history, exportStart, exportEnd, dayStatuses]);
 
   return (
     <div className="space-y-4">
@@ -363,9 +569,13 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">Project / Team</label>
                 <input
-                  type="text" value={project} onChange={e => setProject(e.target.value)} placeholder="e.g. Platform, Mobile…"
+                  type="text" value={project} onChange={e => setProject(e.target.value)}
+                  list="project-options" placeholder="e.g. Platform, Mobile…"
                   className="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
                 />
+                <datalist id="project-options">
+                  {projectOptions.map(p => <option key={p} value={p} />)}
+                </datalist>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1.5">Hours summary</label>
@@ -511,7 +721,7 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
         <div className="space-y-4 fade-in-up">
           {/* Export controls */}
           <div className="bg-white rounded-2xl border border-slate-200/70 p-4 sm:p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <p className="text-xs font-medium text-slate-500 mb-3">Export date range</p>
+            <p className="text-xs font-medium text-slate-500 mb-3">Date range</p>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
                 <label className="text-xs text-slate-500 whitespace-nowrap">From</label>
@@ -527,16 +737,33 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
                   className="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
                 />
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${filteredEntries.length ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-500'}`}>
-                {filteredEntries.length} entries · {filteredEntries.reduce((s, e) => s + sumHours(e.yesterdayTasks), 0)}h
-              </span>
-              <div className="flex gap-2 sm:ml-auto">
+              {/* Stats */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${filteredEntries.length ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-500'}`}>
+                  {filteredEntries.length} workdays logged · {filteredEntries.reduce((s, e) => s + sumHours(e.yesterdayTasks), 0)}h
+                </span>
+                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-red-50 text-red-700 border border-red-200">
+                  {allDatesInRange.filter(d => getEffectiveDayType(d, dayStatuses) !== 'workday').length} holidays/weekends
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:ml-auto">
+                {/* Standup sheet — full picture including planned */}
                 <button
                   onClick={exportCSV}
-                  disabled={!filteredEntries.length}
+                  disabled={!allDatesInRange.length}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-800 text-white text-xs font-medium hover:bg-slate-900 transition disabled:opacity-50"
                 >
-                  Export CSV
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  Standup CSV
+                </button>
+                {/* Monthly upload — completed tasks only, date = previous working day */}
+                <button
+                  onClick={exportMonthlyCSV}
+                  disabled={!filteredEntries.length}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  Monthly Upload
                 </button>
                 <button
                   onClick={printTimesheet}
@@ -547,47 +774,97 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
                 </button>
               </div>
             </div>
+            {/* Legend */}
+            <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-100">
+              <span className="text-[10px] text-slate-400 font-medium">Day type legend:</span>
+              {(['workday', 'holiday', 'leave', 'weekend'] as const).map(t => {
+                const meta = { workday: ['bg-emerald-50 text-emerald-700 border-emerald-200', 'Workday'], holiday: ['bg-red-50 text-red-700 border-red-200', 'Holiday'], leave: ['bg-violet-50 text-violet-700 border-violet-200', 'Leave'], weekend: ['bg-slate-100 text-slate-500 border-slate-200', 'Weekend'] }[t];
+                return <span key={t} className={`text-[10px] font-semibold border px-2 py-0.5 rounded-full ${meta[0]}`}>{meta[1]}</span>;
+              })}
+              <span className="text-[10px] text-slate-400 ml-1">— use the dropdown on each row to mark holidays or leave</span>
+            </div>
           </div>
 
-          {history.length === 0 ? (
+          {allDatesInRange.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200/70 p-10 text-center" style={{ boxShadow: 'var(--shadow-card)' }}>
-              <p className="text-slate-500 font-medium text-sm">No standup entries yet.</p>
-              <p className="text-xs text-slate-400 mt-1">Create your first standup to see it here.</p>
-              <button
-                onClick={() => setView('form')}
-                className="mt-4 px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition"
-              >
-                Create standup
-              </button>
+              <p className="text-slate-500 font-medium text-sm">Select a valid date range above.</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-200/70 overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[720px]">
+                <table className="w-full text-sm min-w-[780px]">
                   <thead>
                     <tr className="bg-slate-800 text-white">
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider whitespace-nowrap">Day Type</th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Project</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Yesterday (Actual)</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Today (Est.)</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Completed (Yesterday)</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Planned (Today)</th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Blockers</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Hours</th>
                       <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {history.map((entry, i) => {
-                      const inRange = entry.date >= exportStart && entry.date <= exportEnd;
-                      const yHrs    = sumHours(entry.yesterdayTasks);
+                    {allDatesInRange.map((dateStr, i) => {
+                      const dayType = getEffectiveDayType(dateStr, dayStatuses);
+                      const entry   = entryByDate[dateStr];
+                      const yHrs    = entry ? sumHours(entry.yesterdayTasks) : 0;
+
+                      // ── Holiday / Weekend row ──
+                      if (dayType !== 'workday') {
+                        const rowBg = dayType === 'weekend' ? 'bg-slate-50/60' : dayType === 'holiday' ? 'bg-red-50/60' : 'bg-violet-50/60';
+                        const icon  = dayType === 'weekend' ? '🏖️' : dayType === 'holiday' ? '🎉' : '🌴';
+                        const label = dayType === 'weekend' ? 'Weekend — Holiday' : dayType === 'holiday' ? 'Holiday' : 'Leave';
+                        return (
+                          <tr key={dateStr} className={rowBg}>
+                            <td className="px-4 py-2.5 whitespace-nowrap">
+                              <div className="font-semibold text-slate-600 text-xs">{dateStr}</div>
+                              <div className="text-[10px] text-slate-400">{fmtDay(dateStr)}</div>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <DayTypeSelect dateStr={dateStr} value={dayStatuses[dateStr] ?? 'workday'} onChange={setDayStatus} />
+                            </td>
+                            <td colSpan={5} className="px-4 py-2.5 text-xs text-slate-400 italic">
+                              {icon} {label}
+                            </td>
+                            <td className="px-4 py-2.5 text-center text-xs text-slate-400">—</td>
+                          </tr>
+                        );
+                      }
+
+                      // ── Workday with no entry ──
+                      if (!entry) {
+                        return (
+                          <tr key={dateStr} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
+                            <td className="px-4 py-2.5 whitespace-nowrap">
+                              <div className="font-semibold text-slate-700 text-xs">{dateStr}</div>
+                              <div className="text-[10px] text-slate-400">{fmtDay(dateStr)}</div>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <DayTypeSelect dateStr={dateStr} value={dayStatuses[dateStr] ?? 'workday'} onChange={setDayStatus} />
+                            </td>
+                            <td colSpan={5} className="px-4 py-2.5 text-xs text-slate-400 italic">
+                              No standup logged
+                            </td>
+                            <td className="px-4 py-2.5 text-center text-xs text-slate-400">—</td>
+                          </tr>
+                        );
+                      }
+
+                      // ── Full standup row ──
                       return (
-                        <React.Fragment key={entry.id}>
+                        <React.Fragment key={dateStr}>
                           <tr
-                            onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                            className={`cursor-pointer group transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-indigo-50 ${!inRange ? 'opacity-40' : ''}`}
+                            onClick={() => setExpandedId(expandedId === dateStr ? null : dateStr)}
+                            className={`cursor-pointer group transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-indigo-50`}
                           >
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <div className="font-semibold text-slate-800 text-xs">{entry.date}</div>
-                              <div className="text-[10px] text-slate-400">{fmtDay(entry.date)}</div>
+                              <div className="font-semibold text-slate-800 text-xs">{dateStr}</div>
+                              <div className="text-[10px] text-slate-400">{fmtDay(dateStr)}</div>
+                            </td>
+                            <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                              <DayTypeSelect dateStr={dateStr} value={dayStatuses[dateStr] ?? 'workday'} onChange={setDayStatus} />
                             </td>
                             <td className="px-4 py-3"><span className="text-xs text-slate-600">{entry.project || '—'}</span></td>
                             <td className="px-4 py-3 max-w-[200px]">
@@ -634,9 +911,9 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
                               </div>
                             </td>
                           </tr>
-                          {expandedId === entry.id && (
+                          {expandedId === dateStr && (
                             <tr className="bg-slate-50 border-t border-slate-100">
-                              <td colSpan={7} className="px-4 py-4">
+                              <td colSpan={8} className="px-4 py-4">
                                 <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide mb-2">Formatted standup</p>
                                 <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed bg-white rounded-lg p-3 border border-slate-200">
                                   {entry.formatted}
@@ -651,8 +928,8 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
                   {filteredEntries.length > 0 && (
                     <tfoot>
                       <tr className="bg-indigo-50 border-t-2 border-indigo-200">
-                        <td colSpan={5} className="px-4 py-3 text-right text-xs font-semibold text-indigo-600">
-                          Total ({filteredEntries.length} days in range)
+                        <td colSpan={6} className="px-4 py-3 text-right text-xs font-semibold text-indigo-600">
+                          Total — {filteredEntries.length} workdays logged
                         </td>
                         <td className="px-4 py-3 text-center text-base font-bold text-indigo-600">
                           {filteredEntries.reduce((s, e) => s + sumHours(e.yesterdayTasks), 0)}h
