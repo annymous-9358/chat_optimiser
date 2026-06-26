@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
           content: `${ACTIONS[action]}\n\nMessage:\n${message.trim()}`,
         },
       ],
-      max_tokens: 800,
+      max_tokens:   800,
       temperature: 0.6,
     });
 

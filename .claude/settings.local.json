@@ -10,7 +10,10 @@
       "Bash(sleep 3 && grep -E \"history|error|Error|is_deleted|column\" /tmp/nextdev.log 2>/dev/null | tail -20)",
       "mcp__supabase__list_tables",
       "mcp__supabase__apply_migration",
-      "Bash(python3 /tmp/make_reel_v4.py)"
+      "Bash(python3 /tmp/make_reel_v4.py)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s http://localhost:3001)",
+      "Bash(npx firebase *)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Chat Optimiser",
-  description: "Rephrase any message in the perfect tone",
+  title: "ToneCraft",
+  description: "Write with the perfect tone — rephrase, polish, reply, and more.",
 };
 
 export default function RootLayout({
@@ -26,9 +26,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden antialiased`}
     >
-      <body className="min-h-full flex flex-col"><Providers>{children}</Providers></body>
+      <body className="h-full overflow-hidden"><Providers>{children}</Providers></body>
     </html>
   );
 }

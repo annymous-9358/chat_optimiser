@@ -1,0 +1,20 @@
+runConfig:
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 100
+
+env:
+  - variable: GROQ_API_KEY
+    secret: GROQ_API_KEY
+
+  - variable: NEXT_PUBLIC_SUPABASE_URL
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    availability:
+      - BUILD
+      - RUNTIME
