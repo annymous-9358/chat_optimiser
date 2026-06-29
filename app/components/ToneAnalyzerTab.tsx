@@ -2,8 +2,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
-import VoiceInput  from './VoiceInput';
-import SpeakButton from './SpeakButton';
 
 type Analysis = {
   primary: string;
@@ -13,19 +11,25 @@ type Analysis = {
   tags: string[];
 };
 
-const SCORE_META: Record<string, { label: string; bar: string }> = {
-  professional: { label: 'Professional', bar: 'bg-blue-500' },
-  casual:       { label: 'Casual',       bar: 'bg-green-500' },
-  emotional:    { label: 'Emotional',    bar: 'bg-pink-500' },
-  assertive:    { label: 'Assertive',    bar: 'bg-orange-500' },
-  empathetic:   { label: 'Empathetic',   bar: 'bg-teal-500' },
-  formal:       { label: 'Formal',       bar: 'bg-indigo-500' },
+const SCORE_META: Record<string, { label: string }> = {
+  professional: { label: 'Professional' },
+  casual:       { label: 'Casual' },
+  emotional:    { label: 'Emotional' },
+  assertive:    { label: 'Assertive' },
+  empathetic:   { label: 'Empathetic' },
+  formal:       { label: 'Formal' },
 };
 
-type Props = {
-  loadSession?: HistoryEntry | null;
-  onSessionLoaded?: () => void;
-};
+function Spin() {
+  return (
+    <svg style={{ width: 14, height: 14, animation: 'spin 1s linear infinite', flexShrink: 0 }} viewBox="0 0 24 24" fill="none">
+      <circle style={{ opacity: 0.2 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path style={{ opacity: 0.8 }} fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  );
+}
+
+type Props = { loadSession?: HistoryEntry | null; onSessionLoaded?: () => void; };
 
 export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
@@ -47,7 +51,7 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
   }, [loadSession, onSessionLoaded]);
 
   const handleAnalyze = useCallback(async () => {
-    if (!message.trim()) { setError('Please enter a message to analyze.'); return; }
+    if (!message.trim()) { setError('Enter a message to analyze.'); return; }
     setError(''); setLoading(true); setAnimate(false); setAnalysis(null);
     try {
       const res = await fetch('/api/analyze', {
@@ -60,7 +64,7 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
       setAnalysis(data.analysis);
       setTimeout(() => setAnimate(true), 50);
       saveEntry({
-        type: 'analyzer', emoji: '🔍', label: data.analysis.primary,
+        type: 'analyzer', emoji: '', label: data.analysis.primary,
         preview: message.slice(0, 60),
         data: { message, analysis: data.analysis },
       });
@@ -70,74 +74,63 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
   }, [message, saveEntry]);
 
   return (
-    <div className="space-y-4">
-      {/* Input */}
-      <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-medium text-slate-500">Message to analyse</label>
-          <VoiceInput onResult={(t) => setMessage((m) => m ? m + ' ' + t : t)} disabled={loading} />
-        </div>
+    <div className="tc-view">
+      <div>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Tone Analyzer</h1>
+        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Understand the emotional tone and communication style of any message.</p>
+      </div>
+
+      <div>
+        <div className="tc-label">Message to analyse</div>
         <textarea
+          className="tc-textarea"
+          rows={5}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={e => setMessage(e.target.value)}
           placeholder="Paste any message to see what tone it's giving off…"
-          rows={4}
-          className="w-full resize-none rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
         />
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-3 text-sm text-red-700">
+        <div className="tc-err">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           {error}
         </div>
       )}
 
-      <button
-        onClick={handleAnalyze}
-        disabled={loading}
-        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-lg shadow-indigo-200/50 hover:from-indigo-600 hover:to-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            Analysing…
-          </span>
-        ) : 'Analyse tone'}
+      <button onClick={handleAnalyze} disabled={loading} className="tc-btn">
+        {loading && <Spin />}
+        {loading ? 'Analysing…' : 'Analyse tone'}
       </button>
 
       {loading && (
-        <div className="space-y-3">
-          <div className="skeleton h-24" />
-          <div className="skeleton h-40" />
+        <div className="tc-skeletons">
+          {[80, 120, 100].map((h, i) => (
+            <div key={i} className="skeleton" style={{ height: h, borderRadius: 0, borderBottom: i < 2 ? '1px solid var(--tc-faint)' : 'none' }} />
+          ))}
         </div>
       )}
 
       {analysis && (
-        <div className="space-y-3 fade-in-up">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Primary + verdict */}
-          <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <div className="flex items-center gap-2 mb-3 flex-wrap">
-              <span className="text-xs font-medium text-slate-500">Primary tone</span>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <div style={{ border: '1px solid var(--tc-border)', borderRadius: 8, background: 'var(--tc-card)', padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+              <div className="tc-label" style={{ marginBottom: 0 }}>Primary tone</div>
+              <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-accent)', color: 'var(--tc-on)' }}>
                 {analysis.primary}
               </span>
-              {analysis.tags?.map((tag) => (
-                <span key={tag} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{tag}</span>
+              {analysis.tags?.map(tag => (
+                <span key={tag} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', color: 'var(--tc-sec)' }}>{tag}</span>
               ))}
             </div>
-            <div className="flex items-start justify-between gap-2 mt-1">
-              <p className="text-sm text-slate-700 leading-relaxed flex-1">{analysis.verdict}</p>
-              <SpeakButton text={analysis.verdict} />
-            </div>
+            <p style={{ fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0 }}>{analysis.verdict}</p>
           </div>
 
           {/* Score bars */}
-          <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-            <h3 className="text-xs font-medium text-slate-500 mb-4">Tone breakdown</h3>
-            <div className="space-y-3.5">
+          <div style={{ border: '1px solid var(--tc-border)', borderRadius: 8, background: 'var(--tc-card)', padding: 20 }}>
+            <div className="tc-label">Tone breakdown</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {Object.entries(analysis.scores)
                 .sort(([, a], [, b]) => b - a)
                 .map(([key, score]) => {
@@ -145,15 +138,12 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
                   if (!meta) return null;
                   return (
                     <div key={key}>
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-xs font-medium text-slate-600">{meta.label}</span>
-                        <span className="text-xs font-semibold text-slate-500">{score}%</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--tc-text)' }}>{meta.label}</span>
+                        <span style={{ fontSize: 12, color: 'var(--tc-muted)', fontFamily: 'var(--font-geist-mono), monospace' }}>{score}%</span>
                       </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${meta.bar} transition-all duration-700`}
-                          style={{ width: animate ? `${Math.min(score, 100)}%` : '0%' }}
-                        />
+                      <div style={{ height: 4, background: 'var(--tc-faint)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', borderRadius: 2, background: 'var(--tc-accent)', transition: 'width .7s ease', width: animate ? `${Math.min(score, 100)}%` : '0%' }} />
                       </div>
                     </div>
                   );
@@ -163,18 +153,16 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
 
           {/* Tips */}
           {analysis.tips?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-              <h3 className="text-xs font-medium text-slate-500 mb-3">Tips to improve</h3>
-              <ul className="space-y-2.5">
+            <div style={{ border: '1px solid var(--tc-border)', borderRadius: 8, background: 'var(--tc-card)', padding: 20 }}>
+              <div className="tc-label">Tips to improve</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {analysis.tips.map((tip, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700">
-                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-slate-100 text-slate-500 text-xs font-semibold flex items-center justify-center mt-0.5">
-                      {i + 1}
-                    </span>
-                    {tip}
-                  </li>
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', fontSize: 11, fontWeight: 600, color: 'var(--tc-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>{i + 1}</span>
+                    <p style={{ fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.6, margin: 0 }}>{tip}</p>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>

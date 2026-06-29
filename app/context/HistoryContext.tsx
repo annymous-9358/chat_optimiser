@@ -12,7 +12,7 @@ export type HistoryEntry = {
   id: string;
   type: TabType;
   timestamp: number;
-  emoji: string;
+  emoji?: string;
   label: string;
   preview: string;
   data: Record<string, unknown>;

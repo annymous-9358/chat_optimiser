@@ -2,41 +2,37 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
-import VoiceInput  from './VoiceInput';
-import SpeakButton from './SpeakButton';
-import ShareButton from './ShareButton';
 
-const STRATEGIES = [
-  { i: 0, label: 'Direct',        color: 'text-blue-600   bg-blue-50   border-blue-200'   },
-  { i: 1, label: 'Question',      color: 'text-violet-600 bg-violet-50 border-violet-200' },
-  { i: 2, label: 'Benefit',       color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-  { i: 3, label: 'Conversational',color: 'text-amber-600  bg-amber-50  border-amber-200'  },
-  { i: 4, label: 'Intriguing',    color: 'text-pink-600   bg-pink-50   border-pink-200'   },
-];
+const STRATEGIES = ['Direct', 'Question', 'Benefit', 'Conversational', 'Intriguing'];
 
 const TONES = [
-  { id: 'professional', label: 'Professional', emoji: '🏢' },
-  { id: 'casual',       label: 'Casual',       emoji: '😊' },
-  { id: 'urgent',       label: 'Urgent',       emoji: '⚡' },
-  { id: 'curious',      label: 'Curious',      emoji: '🤔' },
-  { id: 'friendly',     label: 'Friendly',     emoji: '👋' },
+  { id: 'professional', label: 'Professional' },
+  { id: 'casual',       label: 'Casual' },
+  { id: 'urgent',       label: 'Urgent' },
+  { id: 'curious',      label: 'Curious' },
+  { id: 'friendly',     label: 'Friendly' },
 ];
 
-type Props = {
-  loadSession?: HistoryEntry | null;
-  onSessionLoaded?: () => void;
-};
+function Spin() {
+  return (
+    <svg style={{ width: 14, height: 14, animation: 'spin 1s linear infinite', flexShrink: 0 }} viewBox="0 0 24 24" fill="none">
+      <circle style={{ opacity: 0.2 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path style={{ opacity: 0.8 }} fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  );
+}
+
+type Props = { loadSession?: HistoryEntry | null; onSessionLoaded?: () => void; };
 
 export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
-  const [body,        setBody]        = useState('');
-  const [purpose,     setPurpose]     = useState('');
-  const [tone,        setTone]        = useState('professional');
-  const [subjects,    setSubjects]    = useState<string[]>([]);
-  const [loading,     setLoading]     = useState(false);
-  const [error,       setError]       = useState('');
-  const [copied,      setCopied]      = useState<number | null>(null);
-  const [showResults, setShowResults] = useState(false);
+  const [body,     setBody]     = useState('');
+  const [purpose,  setPurpose]  = useState('');
+  const [tone,     setTone]     = useState('professional');
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+  const [copied,   setCopied]   = useState<number | null>(null);
 
   useEffect(() => {
     if (!loadSession) return;
@@ -45,25 +41,23 @@ export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props)
     setPurpose((d.purpose as string) ?? '');
     setTone((d.tone as string) ?? 'professional');
     setSubjects((d.subjects as string[]) ?? []);
-    setShowResults(true);
     onSessionLoaded?.();
   }, [loadSession, onSessionLoaded]);
 
   const handleGenerate = useCallback(async () => {
     if (!body.trim()) { setError('Paste your email body first.'); return; }
-    setError(''); setLoading(true); setShowResults(false); setSubjects([]);
+    setError(''); setLoading(true); setSubjects([]);
     try {
       const res = await fetch('/api/email-subject', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ body, tone, purpose }),
+        body: JSON.stringify({ body, tone, purpose }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setSubjects(data.subjects);
-      setShowResults(true);
       saveEntry({
-        type: 'emailsubject', emoji: '📧', label: 'Email Subject',
+        type: 'emailsubject', emoji: '', label: 'Email Subject',
         preview: (purpose || body).slice(0, 60),
         data: { body, tone, purpose, subjects: data.subjects },
       });
@@ -72,152 +66,91 @@ export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props)
     } finally { setLoading(false); }
   }, [body, tone, purpose, saveEntry]);
 
-  const handleCopy = (text: string, i: number) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(i);
-      setTimeout(() => setCopied(null), 2000);
-    });
-  };
-
   return (
-    <div className="space-y-4">
-      {/* Purpose (optional) */}
-      <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <label className="block text-xs font-medium text-slate-500 mb-1.5">
-          Email purpose <span className="font-normal text-slate-400">(optional — helps generate better subjects)</span>
-        </label>
-        <div className="relative flex items-center gap-2">
-          <input
-            type="text"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            placeholder="e.g. Following up on a proposal, announcing a product launch…"
-            className="flex-1 rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
-          />
-          <VoiceInput onResult={(t) => setPurpose((p) => p ? p + ' ' + t : t)} />
-        </div>
+    <div className="tc-view">
+      <div>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Email Subject</h1>
+        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Generate five subject lines — each from a different angle — for any email.</p>
       </div>
 
-      {/* Body */}
-      <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-xs font-medium text-slate-500">Email body</label>
-          <VoiceInput onResult={(t) => setBody((b) => b ? b + ' ' + t : t)} />
-        </div>
-        <div className="relative">
+      <div>
+        <div className="tc-label">Email purpose <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>(optional)</span></div>
+        <input className="tc-input" type="text" value={purpose} onChange={e => setPurpose(e.target.value)}
+          placeholder="e.g. Following up on a proposal, announcing a product launch…" />
+      </div>
+
+      <div>
+        <div className="tc-label">Email body</div>
+        <div style={{ position: 'relative' }}>
           <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Paste your full email body here…"
+            className="tc-textarea"
             rows={6}
+            value={body}
+            onChange={e => setBody(e.target.value)}
+            placeholder="Paste your full email body here…"
             maxLength={3000}
-            className="w-full resize-none rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all pr-8"
           />
           {body && (
-            <button
-              onClick={() => { setBody(''); setSubjects([]); setShowResults(false); }}
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
+            <button onClick={() => { setBody(''); setSubjects([]); }}
+              style={{ position: 'absolute', top: 10, right: 10, width: 20, height: 20, borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-muted)' }}>
+              <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           )}
         </div>
-        <p className={`text-xs mt-1.5 text-right ${body.length > 2700 ? 'text-amber-500 font-medium' : 'text-slate-400'}`}>
-          {body.length} / 3000
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+          <span style={{ fontSize: 11, color: body.length > 2700 ? '#d97706' : 'var(--tc-muted)', fontFamily: 'var(--font-geist-mono), monospace' }}>{body.length} / 3000</span>
+        </div>
       </div>
 
-      {/* Tone */}
-      <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <label className="block text-xs font-medium text-slate-500 mb-3">Subject tone</label>
-        <div className="flex flex-wrap gap-2">
-          {TONES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTone(t.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-medium transition-all chip-btn ${
-                tone === t.id ? 'chip-active' : 'border-slate-200 text-slate-600'
-              }`}
-            >
-              <span>{t.emoji}</span> {t.label}
-            </button>
+      <div>
+        <div className="tc-label">Subject tone</div>
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }} className="scrollbar-hide">
+          {TONES.map(t => (
+            <button key={t.id} onClick={() => setTone(t.id)} className={`tc-chip${tone === t.id ? ' tc-active' : ''}`}>{t.label}</button>
           ))}
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-3 text-sm text-red-700">{error}</div>
+        <div className="tc-err">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          {error}
+        </div>
       )}
 
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-lg shadow-indigo-200/50 hover:from-indigo-600 hover:to-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            Generating subject lines…
-          </span>
-        ) : 'Generate subject lines'}
+      <button onClick={handleGenerate} disabled={loading} className="tc-btn">
+        {loading && <Spin />}
+        {loading ? 'Generating…' : 'Generate subject lines'}
       </button>
 
       {loading && (
-        <div className="space-y-3">
-          {[0,1,2,3,4].map((i) => (
-            <div key={i} className="skeleton h-14 w-full" style={{ animationDelay: `${i * 0.08}s` }} />
+        <div className="tc-skeletons">
+          {[48, 48, 48, 48, 48].map((h, i) => (
+            <div key={i} className="skeleton" style={{ height: h, borderRadius: 0, borderBottom: i < 4 ? '1px solid var(--tc-faint)' : 'none' }} />
           ))}
         </div>
       )}
 
-      {showResults && subjects.length > 0 && (
-        <div className="space-y-2.5 fade-in-up">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-slate-700">Subject line options</h2>
-            <span className="text-xs text-slate-400">5 different angles</span>
-          </div>
-          {subjects.map((s, i) => {
-            const meta = STRATEGIES[i] ?? STRATEGIES[0];
-            return (
-              <div
-                key={i}
-                className="bg-white rounded-2xl border border-slate-200/70 p-4 result-card transition-all duration-200 fade-in-up"
-                style={{ animationDelay: `${i * 0.07}s`, boxShadow: 'var(--shadow-card)' }}
-              >
-                <div className="flex items-start gap-3">
-                  <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-1 rounded border whitespace-nowrap mt-0.5 ${meta.color}`}>
-                    {meta.label}
-                  </span>
-                  <p className="flex-1 text-sm text-slate-800 font-medium leading-snug">{s}</p>
+      {subjects.length > 0 && (
+        <div>
+          <div className="tc-label">Subject lines</div>
+          <div className="tc-result-list">
+            {subjects.map((s, i) => (
+              <div key={i} className="tc-result-row" style={{ alignItems: 'center' }}>
+                <div style={{ flexShrink: 0, minWidth: 72 }}>
+                  <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--tc-muted)' }}>{STRATEGIES[i]}</span>
                 </div>
-                {/* Char count + actions */}
-                <div className="flex items-center justify-between mt-2.5 pl-1">
-                  <span className={`text-[10px] font-medium ${s.length > 60 ? 'text-amber-500' : 'text-slate-400'}`}>
-                    {s.length} chars {s.length > 60 ? '⚠️' : '✓'}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <SpeakButton text={s} />
-                    <ShareButton text={s} title="Email Subject" />
-                    <button
-                      onClick={() => handleCopy(s, i)}
-                      className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border transition-all ${
-                        copied === i
-                          ? 'bg-green-50 border-green-200 text-green-700'
-                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
-                      }`}
-                    >
-                      {copied === i ? '✓ Copied' : 'Copy'}
-                    </button>
-                  </div>
+                <p style={{ flex: 1, fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>{s}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, color: s.length > 60 ? '#d97706' : 'var(--tc-muted)', fontFamily: 'var(--font-geist-mono), monospace' }}>{s.length}</span>
+                  <button onClick={() => { navigator.clipboard.writeText(s); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
+                    className={`tc-copy${copied === i ? ' copied' : ''}`}>
+                    {copied === i ? 'Copied' : 'Copy'}
+                  </button>
                 </div>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       )}
     </div>

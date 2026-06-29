@@ -388,7 +388,7 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
       if (existing) deleteEntry(existing.id);
 
       const saved = await saveEntry({
-        type: 'standup', emoji: '📋', label: fmtDate(date),
+        type: 'standup', emoji: '', label: fmtDate(date),
         preview: (yT[0]?.text || tT[0]?.text || 'Standup').slice(0, 60),
         data: {
           date, project, yesterdayTasks: yT, todayTasks: tT,
@@ -532,7 +532,7 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
   }, [filteredEntries.length, history, exportStart, exportEnd, dayStatuses]);
 
   return (
-    <div className="space-y-4">
+    <div className="tc-view">
       {/* View toggle */}
       <div className="flex gap-1.5 bg-white rounded-2xl border border-slate-200/70 p-1.5" style={{ boxShadow: 'var(--shadow-card)' }}>
         {(['form', 'timesheet'] as const).map(v => (
@@ -814,7 +814,7 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
                       // ── Holiday / Weekend row ──
                       if (dayType !== 'workday') {
                         const rowBg = dayType === 'weekend' ? 'bg-slate-50/60' : dayType === 'holiday' ? 'bg-red-50/60' : 'bg-violet-50/60';
-                        const icon  = dayType === 'weekend' ? '🏖️' : dayType === 'holiday' ? '🎉' : '🌴';
+                        const icon  = '';
                         const label = dayType === 'weekend' ? 'Weekend — Holiday' : dayType === 'holiday' ? 'Holiday' : 'Leave';
                         return (
                           <tr key={dateStr} className={rowBg}>

@@ -50,6 +50,202 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── ToneCraft CSS design tokens ────────────────────────────────────────────── */
+:root {
+  --tc-text:   #1c1917;
+  --tc-sec:    #78716c;
+  --tc-muted:  #a8a29e;
+  --tc-border: #e7e5e0;
+  --tc-faint:  #f0ede8;
+  --tc-card:   #ffffff;
+  --tc-chip:   #f5f4f1;
+  --tc-hover:  #f7f6f3;
+  --tc-accent: #18181b;
+  --tc-on:     #ffffff;
+}
+html.dark {
+  --tc-text:   #fafaf9;
+  --tc-sec:    #a8a29e;
+  --tc-muted:  #57534e;
+  --tc-border: #292524;
+  --tc-faint:  #1f1e1c;
+  --tc-card:   #1c1917;
+  --tc-chip:   #242220;
+  --tc-hover:  #211f1e;
+  --tc-accent: #fafaf9;
+  --tc-on:     #141412;
+}
+
+/* ── View layout ─────────────────────────────────────────────────────────────── */
+.tc-view {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (max-width: 600px) { .tc-view { padding: 24px 16px; gap: 18px; } }
+
+/* ── Section label ───────────────────────────────────────────────────────────── */
+.tc-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--tc-muted);
+  margin-bottom: 8px;
+}
+
+/* ── Card surface ────────────────────────────────────────────────────────────── */
+.tc-card {
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  background: var(--tc-card);
+  padding: 20px;
+}
+
+/* ── Textarea ────────────────────────────────────────────────────────────────── */
+.tc-textarea {
+  width: 100%;
+  border: 1px solid var(--tc-border);
+  border-radius: 8px;
+  background: var(--tc-card);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--tc-text);
+  outline: none;
+  resize: none;
+  line-height: 1.72;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  box-sizing: border-box;
+  transition: border-color .15s;
+  display: block;
+}
+.tc-textarea:focus { border-color: var(--tc-text); }
+.tc-textarea::placeholder { color: var(--tc-muted); }
+
+/* ── Text input ──────────────────────────────────────────────────────────────── */
+.tc-input {
+  width: 100%;
+  border: 1px solid var(--tc-border);
+  border-radius: 6px;
+  background: var(--tc-card);
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--tc-text);
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color .15s;
+  display: block;
+}
+.tc-input:focus { border-color: var(--tc-text); }
+.tc-input::placeholder { color: var(--tc-muted); }
+
+/* ── Chip (tone/option pill) ─────────────────────────────────────────────────── */
+.tc-chip {
+  padding: 5px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--tc-border);
+  background: var(--tc-chip);
+  color: var(--tc-sec);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .1s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.tc-chip:hover:not(.tc-active) { background: var(--tc-faint); border-color: #d6d3d1; }
+.tc-chip.tc-active { background: var(--tc-accent); border-color: var(--tc-accent); color: var(--tc-on); font-weight: 500; }
+
+/* ── Stance card (larger selectable card) ────────────────────────────────────── */
+.tc-stance {
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--tc-border);
+  background: var(--tc-chip);
+  cursor: pointer;
+  text-align: left;
+  transition: all .1s;
+  font-family: inherit;
+}
+.tc-stance:hover:not(.tc-active) { background: var(--tc-hover); border-color: var(--tc-border); }
+.tc-stance.tc-active { background: var(--tc-accent); border-color: var(--tc-accent); }
+
+/* ── Primary action button ───────────────────────────────────────────────────── */
+.tc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 6px;
+  background: var(--tc-accent);
+  color: var(--tc-on);
+  font-weight: 600;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  min-width: 160px;
+  align-self: flex-start;
+  font-family: inherit;
+  transition: filter .15s;
+}
+.tc-btn:hover:not(:disabled) { filter: brightness(1.18); }
+.tc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Error strip ─────────────────────────────────────────────────────────────── */
+.tc-err {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  padding: 9px 13px;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+/* ── Result list ─────────────────────────────────────────────────────────────── */
+.tc-result-list { border: 1px solid var(--tc-border); border-radius: 8px; overflow: hidden; }
+.tc-result-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--tc-faint);
+  transition: background .12s;
+  position: relative;
+}
+.tc-result-row:last-child { border-bottom: none; }
+.tc-result-row:hover { background: var(--tc-hover); }
+
+/* ── Copy button (shows on row hover) ───────────────────────────────────────── */
+.tc-copy {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--tc-border);
+  background: var(--tc-chip);
+  color: var(--tc-sec);
+  cursor: pointer;
+  transition: all .12s;
+  font-family: inherit;
+  flex-shrink: 0;
+  opacity: 0;
+}
+.tc-result-row:hover .tc-copy,
+.tc-copy.copied { opacity: 1; }
+.tc-copy.copied { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+
+/* ── Skeleton shimmer bars ───────────────────────────────────────────────────── */
+.tc-skeletons { border: 1px solid var(--tc-border); border-radius: 8px; overflow: hidden; }
+
 /* App background */
 .app-bg { background: #fafaf9; }
 

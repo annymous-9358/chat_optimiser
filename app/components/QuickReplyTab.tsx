@@ -2,29 +2,28 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
-import VoiceInput  from './VoiceInput';
-import SpeakButton from './SpeakButton';
-import ShareButton from './ShareButton';
 
 const RELATIONSHIPS = [
-  { id: 'boss',      label: 'Boss',      emoji: '👔' },
-  { id: 'colleague', label: 'Colleague', emoji: '🤝' },
-  { id: 'friend',    label: 'Friend',    emoji: '😄' },
-  { id: 'partner',   label: 'Partner',   emoji: '❤️' },
-  { id: 'family',    label: 'Family',    emoji: '👨‍👩‍👧' },
-  { id: 'client',    label: 'Client',    emoji: '💼' },
+  { id: 'boss',      label: 'Boss' },
+  { id: 'colleague', label: 'Colleague' },
+  { id: 'friend',    label: 'Friend' },
+  { id: 'partner',   label: 'Partner' },
+  { id: 'family',    label: 'Family' },
+  { id: 'client',    label: 'Client' },
 ];
 
-const APPROACH_META = [
-  { label: 'Agreeable',  color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-  { label: 'Neutral',    color: 'text-blue-600 bg-blue-50 border-blue-200' },
-  { label: 'Declining',  color: 'text-slate-600 bg-slate-100 border-slate-200' },
-];
+const APPROACH_LABELS = ['Agreeable', 'Neutral', 'Declining'];
 
-type Props = {
-  loadSession?: HistoryEntry | null;
-  onSessionLoaded?: () => void;
-};
+function Spin() {
+  return (
+    <svg style={{ width: 14, height: 14, animation: 'spin 1s linear infinite', flexShrink: 0 }} viewBox="0 0 24 24" fill="none">
+      <circle style={{ opacity: 0.2 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path style={{ opacity: 0.8 }} fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  );
+}
+
+type Props = { loadSession?: HistoryEntry | null; onSessionLoaded?: () => void; };
 
 export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
   const { saveEntry } = useHistory();
@@ -35,7 +34,6 @@ export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState('');
   const [copied,       setCopied]       = useState<number | null>(null);
-  const [showResults,  setShowResults]  = useState(false);
 
   useEffect(() => {
     if (!loadSession) return;
@@ -44,14 +42,13 @@ export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
     setRelationship((d.relationship as string) ?? '');
     setContext((d.context as string) ?? '');
     setReplies((d.replies as string[]) ?? []);
-    setShowResults(true);
     onSessionLoaded?.();
   }, [loadSession, onSessionLoaded]);
 
   const handleGenerate = useCallback(async () => {
     if (!received.trim()) { setError('Paste the message you received.'); return; }
     if (!relationship) { setError('Select your relationship with the sender.'); return; }
-    setError(''); setLoading(true); setShowResults(false); setReplies([]);
+    setError(''); setLoading(true); setReplies([]);
     try {
       const res = await fetch('/api/quick-reply', {
         method: 'POST',
@@ -61,10 +58,9 @@ export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setReplies(data.replies);
-      setShowResults(true);
-      const rel = RELATIONSHIPS.find((r) => r.id === relationship);
+      const rel = RELATIONSHIPS.find(r => r.id === relationship);
       saveEntry({
-        type: 'quickreply', emoji: rel?.emoji ?? '💬', label: rel?.label ?? relationship,
+        type: 'quickreply', emoji: '', label: rel?.label ?? relationship,
         preview: received.slice(0, 60),
         data: { receivedMessage: received, relationship, context, replies: data.replies },
       });
@@ -73,125 +69,85 @@ export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
     } finally { setLoading(false); }
   }, [received, relationship, context, saveEntry]);
 
-  const handleCopy = (text: string, i: number) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(i);
-      setTimeout(() => setCopied(null), 2000);
-    });
-  };
-
   return (
-    <div className="space-y-4">
-      {/* Received message */}
-      <div className="bg-white rounded-2xl border border-slate-200/70 p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs font-medium text-slate-500">Message you received</label>
-          <VoiceInput onResult={(t) => setReceived((r) => r ? r + ' ' + t : t)} disabled={loading} />
-        </div>
+    <div className="tc-view">
+      <div>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Quick Reply</h1>
+        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Generate three contextual replies — agreeable, neutral, or declining — for any message.</p>
+      </div>
+
+      <div>
+        <div className="tc-label">Message received</div>
         <textarea
+          className="tc-textarea"
+          rows={4}
           value={received}
-          onChange={(e) => setReceived(e.target.value)}
+          onChange={e => setReceived(e.target.value)}
           placeholder="Paste the message someone sent you…"
-          rows={3}
-          className="w-full resize-none rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
         />
       </div>
 
-      {/* Relationship + Context */}
-      <div className="bg-white rounded-2xl border border-slate-200/70 p-5 space-y-4" style={{ boxShadow: 'var(--shadow-card)' }}>
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-2.5">
-            Who sent it?
-          </label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {RELATIONSHIPS.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setRelationship(r.id)}
-                className={`flex flex-col items-center gap-1.5 rounded-lg border py-3 transition-all duration-150 ${
-                  relationship === r.id
-                    ? 'border-indigo-400 bg-indigo-50 text-indigo-700 shadow-sm'
-                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <span className="text-xl">{r.emoji}</span>
-                <span className="text-[11px] font-medium">{r.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1.5">
-            Context <span className="font-normal text-slate-400">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            placeholder="e.g. deadline is tomorrow, I already said no once…"
-            className="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-300 focus:bg-white transition-all"
-          />
+      <div>
+        <div className="tc-label">Who sent it?</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {RELATIONSHIPS.map(r => (
+            <button key={r.id} onClick={() => setRelationship(r.id)}
+              className={`tc-chip${relationship === r.id ? ' tc-active' : ''}`}>
+              {r.label}
+            </button>
+          ))}
         </div>
       </div>
 
+      <div>
+        <div className="tc-label">Context <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>(optional)</span></div>
+        <input
+          type="text"
+          className="tc-input"
+          value={context}
+          onChange={e => setContext(e.target.value)}
+          placeholder="e.g. deadline is tomorrow, I already said no once…"
+        />
+      </div>
+
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-3 text-sm text-red-700">
+        <div className="tc-err">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           {error}
         </div>
       )}
 
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-lg shadow-indigo-200/50 hover:from-indigo-600 hover:to-violet-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-            </svg>
-            Generating replies…
-          </span>
-        ) : 'Generate smart replies'}
+      <button onClick={handleGenerate} disabled={loading} className="tc-btn">
+        {loading && <Spin />}
+        {loading ? 'Generating…' : 'Generate replies'}
       </button>
 
       {loading && (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => <div key={i} className="skeleton h-20" style={{ animationDelay: `${i * 0.1}s` }} />)}
+        <div className="tc-skeletons">
+          {[72, 56, 72].map((h, i) => (
+            <div key={i} className="skeleton" style={{ height: h, borderRadius: 0, borderBottom: i < 2 ? '1px solid var(--tc-faint)' : 'none' }} />
+          ))}
         </div>
       )}
 
-      {showResults && replies.length > 0 && (
-        <div className="space-y-2.5 fade-in-up">
-          <h2 className="text-sm font-medium text-slate-700">Reply options</h2>
-          {replies.map((r, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl border border-slate-200/70 p-4 flex items-start gap-3 group result-card transition-all duration-200 fade-in-up"
-              style={{ animationDelay: `${i * 0.06}s`, boxShadow: 'var(--shadow-card)' }}
-            >
-              <span className={`flex-shrink-0 text-[10px] font-medium px-2 py-1 rounded border whitespace-nowrap mt-0.5 ${APPROACH_META[i].color}`}>
-                {APPROACH_META[i].label}
-              </span>
-              <p className="flex-1 text-sm text-slate-700 leading-relaxed">{r}</p>
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <SpeakButton text={r} />
-                <ShareButton text={r} />
+      {replies.length > 0 && (
+        <div>
+          <div className="tc-label">Replies</div>
+          <div className="tc-result-list">
+            {replies.map((r, i) => (
+              <div key={i} className="tc-result-row">
+                <div style={{ flexShrink: 0, minWidth: 60, paddingTop: 2 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--tc-muted)' }}>{APPROACH_LABELS[i]}</div>
+                </div>
+                <p style={{ flex: 1, fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0 }}>{r}</p>
                 <button
-                  onClick={() => handleCopy(r, i)}
-                  className={`text-xs font-medium px-2.5 py-1.5 rounded-md border transition-all ${
-                    copied === i
-                      ? 'bg-green-50 border-green-200 text-green-700'
-                      : 'opacity-0 group-hover:opacity-100 border-slate-200 text-slate-500 hover:bg-slate-50'
-                  }`}
-                >
+                  onClick={() => { navigator.clipboard.writeText(r); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
+                  className={`tc-copy${copied === i ? ' copied' : ''}`}>
                   {copied === i ? 'Copied' : 'Copy'}
                 </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
