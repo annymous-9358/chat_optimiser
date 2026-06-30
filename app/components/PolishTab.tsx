@@ -68,9 +68,9 @@ export default function PolishTab({ loadSession, onSessionLoaded }: Props) {
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Polish</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Transform your message — shorten, expand, fix grammar, or add punch.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Polish</h1>
+        <p className="tc-desc">Transform your message — shorten, expand, fix grammar, or add punch.</p>
       </div>
 
       <div>

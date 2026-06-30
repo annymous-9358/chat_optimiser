@@ -107,9 +107,9 @@ export default function ChatAnalyzerTab({ loadSession, onSessionLoaded }: Props)
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Chat Analyzer</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Analyse chat dynamics or generate a contextual message from your conversation history.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Chat Analyzer</h1>
+        <p className="tc-desc">Analyse chat dynamics or generate a contextual message from your conversation history.</p>
       </div>
 
       {/* Mode */}

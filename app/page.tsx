@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth, type OAuthProvider } from './context/AuthContext';
 import { useHistory, HistoryEntry } from './context/HistoryContext';
-import { useTheme } from './context/ThemeContext';
+import { useTheme, type ThemeMode } from './context/ThemeContext';
 import RephraseTab        from './components/RephraseTab';
 import QuickReplyTab      from './components/QuickReplyTab';
 import ToneAnalyzerTab    from './components/ToneAnalyzerTab';
@@ -44,6 +44,9 @@ const TAB_ID_MAP: Record<string, Tab> = {
   emailsubject: 'emailsubject', emailwriter: 'emailwriter',
 };
 
+const ACCENT_PRESETS = ['#f5c518', '#ff3b30', '#00c853', '#0057ff', '#ff6b00', '#ffffff'];
+const THEME_LABELS: Record<ThemeMode, string> = { brutalist: 'B', editorial: 'E', dark: 'D' };
+
 function timeAgo(ts: number): string {
   const d = Date.now() - ts, m = Math.floor(d / 60000);
   if (m < 1) return 'now';
@@ -53,15 +56,15 @@ function timeAgo(ts: number): string {
   return `${Math.floor(h / 24)}d`;
 }
 
-function SvgIcon({ d, size = 14 }: { d: string; size?: number }) {
+function SvgIcon({ d, size = 13, color = 'currentColor' }: { d: string; size?: number; color?: string }) {
   return (
-    <svg style={{ width: size, height: size, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg style={{ width: size, height: size, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke={color} strokeWidth={1.8}>
       <path strokeLinecap="round" strokeLinejoin="round" d={d} />
     </svg>
   );
 }
 
-function Spin({ size = 16, color = 'currentColor' }: { size?: number; color?: string }) {
+function Spin({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
     <svg style={{ width: size, height: size, animation: 'spin 1s linear infinite', flexShrink: 0 }} viewBox="0 0 24 24" fill="none">
       <circle style={{ opacity: 0.2 }} cx="12" cy="12" r="10" stroke={color} strokeWidth="4" />
@@ -125,10 +128,9 @@ function AuthPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#fafaf9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ width: '100%', maxWidth: 320 }}>
-        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 32 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0 }}>CO</div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#1c1917', letterSpacing: '-.2px' }}>ToneCraft</span>
+          <div style={{ width: 28, height: 28, background: '#f5c518', border: '2px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 900, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0 }}>CO</div>
+          <span style={{ fontSize: 13, fontWeight: 900, color: '#1c1917', letterSpacing: '-.2px', fontFamily: 'var(--font-geist-mono), monospace', textTransform: 'uppercase' }}>ToneCraft</span>
         </div>
 
         <h1 style={{ fontSize: 20, fontWeight: 600, color: '#1c1917', letterSpacing: '-.3px', marginBottom: 4 }}>
@@ -138,7 +140,6 @@ function AuthPage() {
           {mode === 'signin' ? 'Access your sessions and history.' : 'Create a free account to get started.'}
         </p>
 
-        {/* Google OAuth */}
         <button onClick={() => handleOAuth('google')} disabled={!!oauthLoading || loading}
           style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '9px 14px', borderRadius: 6, border: '1px solid #e7e5e0', fontSize: 13, fontWeight: 500, color: '#1c1917', background: '#ffffff', cursor: 'pointer', marginBottom: 20, fontFamily: 'inherit', opacity: (oauthLoading || loading) ? 0.6 : 1 }}>
           {oauthLoading === 'google' ? <Spin size={14} /> : (
@@ -158,7 +159,6 @@ function AuthPage() {
           <div style={{ flex: 1, height: 1, background: '#e7e5e0' }} />
         </div>
 
-        {/* Mode tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid #e7e5e0', marginBottom: 20 }}>
           {(['signin', 'signup'] as const).map(m => (
             <button key={m} onClick={() => { setMode(m); setError(''); }}
@@ -198,8 +198,10 @@ function AuthPage() {
 interface SidebarProps {
   activeTab:    Tab;
   setActiveTab: (t: Tab) => void;
-  isDark:       boolean;
-  toggleTheme:  () => void;
+  theme:        ThemeMode;
+  accent:       string;
+  setTheme:     (t: ThemeMode) => void;
+  setAccent:    (a: string) => void;
   email:        string;
   signOut:      () => void;
   entries:      HistoryEntry[];
@@ -210,101 +212,109 @@ interface SidebarProps {
   setMobileOpen:(v: boolean) => void;
 }
 
-function Sidebar({ activeTab, setActiveTab, isDark, toggleTheme, email, signOut, entries, histLoading, onLoadSession, onClearAll, mobileOpen, setMobileOpen }: SidebarProps) {
+function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, email, signOut, entries, histLoading, onLoadSession, onClearAll, mobileOpen, setMobileOpen }: SidebarProps) {
   const [histOpen, setHistOpen] = useState(false);
-
-  const brd  = isDark ? '#292524' : '#e7e5e0';
-  const fnt  = isDark ? '#f0ede8' : '#f0ede8';
-  const txt  = isDark ? '#fafaf9' : '#1c1917';
-  const sec  = isDark ? '#a8a29e' : '#78716c';
-  const mut  = isDark ? '#57534e' : '#a8a29e';
-  const actB = isDark ? '#242220' : '#f5f4f1';
-  const acc  = isDark ? '#fafaf9' : '#18181b';
-  const acOn = isDark ? '#141412' : '#ffffff';
-  const chip = isDark ? '#292524' : '#e7e5e0';
-
-  const nav = (tab: typeof TABS[number]) => {
-    const active = activeTab === tab.id;
-    return (
-      <button key={tab.id} onClick={() => { setActiveTab(tab.id); setMobileOpen(false); }}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 9, padding: '7px 10px', borderRadius: 6, border: 'none', background: active ? actB : 'transparent', color: active ? txt : sec, cursor: 'pointer', textAlign: 'left', fontSize: 13, fontWeight: active ? 500 : 400, fontFamily: 'inherit', transition: 'background .1s', position: 'relative', marginBottom: 1 }}>
-        {active && <div style={{ position: 'absolute', left: 0, top: '18%', height: '64%', width: 2, borderRadius: 2, background: acc }} />}
-        <SvgIcon d={tab.d} size={14} />
-        {tab.label}
-      </button>
-    );
-  };
+  const [hovNav,   setHovNav]   = useState<string | null>(null);
+  const [hovHist,  setHovHist]  = useState<string | null>(null);
+  const isBrut = theme === 'brutalist';
+  const mono   = 'var(--font-geist-mono), ui-monospace, monospace';
 
   return (
     <>
-      {/* Mobile backdrop */}
       {mobileOpen && (
         <div onClick={() => setMobileOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.25)', zIndex: 40, display: 'none' }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 40 }}
           className="mobile-backdrop" />
       )}
 
       <aside className={`tc-sidebar scrollbar-hide${mobileOpen ? ' sidebar-mobile-open' : ''}`}
-        style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', zIndex: 50 }}>
+        style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', zIndex: 50, fontFamily: mono }}>
+
         {/* Logo */}
-        <div style={{ padding: '14px 14px 10px', borderBottom: `1px solid ${fnt}`, flexShrink: 0 }}>
+        <div style={{ padding: '16px 14px 12px', borderBottom: `var(--tc-bw) solid var(--tc-border)`, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: acc, display: 'flex', alignItems: 'center', justifyContent: 'center', color: acOn, fontWeight: 700, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0 }}>CO</div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: txt, letterSpacing: '-.2px' }}>ToneCraft</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 28, height: 28, background: 'var(--tc-accent)', border: `var(--tc-bw) solid var(--tc-border)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-on)', fontWeight: 900, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0, fontFamily: mono }}>CO</div>
+              <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', letterSpacing: isBrut ? '-.3px' : '-.2px', textTransform: isBrut ? 'uppercase' : 'none' }}>
+                ToneCraft
+              </span>
             </div>
-            {/* Mobile close */}
             <button onClick={() => setMobileOpen(false)} className="mobile-only"
-              style={{ width: 26, height: 26, border: 'none', background: 'none', cursor: 'pointer', color: sec, display: 'none', alignItems: 'center', justifyContent: 'center', borderRadius: 4, padding: 0 }}>
+              style={{ width: 24, height: 24, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--tc-muted)', display: 'none', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
         </div>
 
         {/* Nav */}
-        <div className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', padding: '10px 8px' }}>
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: mut, padding: '2px 8px 6px' }}>Tools</div>
-          {TABS.map(nav)}
+        <div className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--tc-muted)', padding: '2px 16px 8px' }}>Tools</div>
+          {TABS.map(tab => {
+            const active  = activeTab === tab.id;
+            const hovered = hovNav === tab.id;
+            return (
+              <button key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setMobileOpen(false); }}
+                onMouseEnter={() => setHovNav(tab.id)}
+                onMouseLeave={() => setHovNav(null)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '8px 16px', border: 'none',
+                  background: active ? 'var(--tc-accent)' : hovered ? 'var(--tc-hover)' : 'transparent',
+                  color: active ? 'var(--tc-on)' : 'var(--tc-sec)',
+                  cursor: 'pointer', textAlign: 'left',
+                  fontSize: 11, fontWeight: active ? 700 : 500,
+                  fontFamily: mono, letterSpacing: '.03em', textTransform: 'uppercase',
+                  borderLeft: active && isBrut ? '4px solid var(--tc-border)' : '4px solid transparent',
+                  transition: 'background .08s',
+                }}>
+                <SvgIcon d={tab.d} size={13} color={active ? 'var(--tc-on)' : 'var(--tc-sec)'} />
+                {tab.label}
+              </button>
+            );
+          })}
 
-          <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: mut, padding: '2px 8px 6px' }}>Workspace</div>
+          {/* Workspace / History */}
+          <div style={{ marginTop: 16, borderTop: `var(--tc-bw) solid var(--tc-border)`, paddingTop: 12 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--tc-muted)', padding: '2px 16px 8px' }}>Workspace</div>
             <button onClick={() => setHistOpen(v => !v)}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 10px', borderRadius: 6, border: 'none', background: 'transparent', color: sec, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <SvgIcon d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" size={14} />
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', border: 'none', background: 'transparent', color: 'var(--tc-sec)', cursor: 'pointer', fontSize: 11, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.03em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <SvgIcon d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" color="var(--tc-sec)" />
                 History
-                {entries.length > 0 && (
-                  <span style={{ fontSize: 9, fontWeight: 600, background: chip, color: sec, padding: '1px 5px', borderRadius: 10 }}>{entries.length}</span>
-                )}
               </div>
-              <svg style={{ width: 11, height: 11, transition: 'transform .15s', transform: histOpen ? 'rotate(90deg)' : 'none', opacity: 0.45 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+              <span style={{ fontSize: 10, color: 'var(--tc-muted)', fontWeight: 700 }}>{histOpen ? '▲' : '▼'}</span>
             </button>
 
             {histOpen && (
               <div>
                 {histLoading && (
-                  <div style={{ padding: '8px 10px 4px 34px' }}><Spin size={12} /></div>
+                  <div style={{ padding: '8px 16px 4px 40px' }}><Spin size={12} color="var(--tc-muted)" /></div>
                 )}
                 {!histLoading && entries.length === 0 && (
-                  <p style={{ fontSize: 11, color: mut, padding: '4px 10px 4px 34px', margin: 0 }}>No history yet</p>
+                  <p style={{ fontSize: 10, color: 'var(--tc-muted)', padding: '4px 16px 4px 40px', margin: 0, fontFamily: mono }}>No history yet</p>
                 )}
                 {entries.slice(0, 15).map(h => (
-                  <div key={h.id} onClick={() => onLoadSession(h)}
-                    style={{ padding: '6px 10px 6px 34px', borderRadius: 6, cursor: 'pointer', transition: 'background .1s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = actB)}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 4, marginBottom: 1 }}>
-                      <span style={{ fontSize: 11, fontWeight: 500, color: txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{TYPE_LABELS[h.type] ?? h.type}</span>
-                      <span style={{ fontSize: 10, color: mut, flexShrink: 0 }}>{timeAgo(h.timestamp)}</span>
+                  <div key={h.id}
+                    onClick={() => onLoadSession(h)}
+                    onMouseEnter={() => setHovHist(h.id)}
+                    onMouseLeave={() => setHovHist(null)}
+                    style={{
+                      padding: '7px 16px 7px 40px', cursor: 'pointer',
+                      background: hovHist === h.id ? 'var(--tc-hover)' : 'transparent',
+                      borderLeft: hovHist === h.id && isBrut ? '4px solid var(--tc-accent)' : '4px solid transparent',
+                      transition: 'background .08s',
+                    }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4, marginBottom: 2 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tc-text)', fontFamily: mono, letterSpacing: '.04em' }}>{TYPE_LABELS[h.type] ?? h.type}</span>
+                      <span style={{ fontSize: 9, color: 'var(--tc-muted)', fontFamily: mono }}>{timeAgo(h.timestamp)}</span>
                     </div>
-                    <p style={{ fontSize: 11, color: mut, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>{h.preview}</p>
+                    <p style={{ fontSize: 10, color: 'var(--tc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, fontFamily: mono }}>{h.preview}</p>
                   </div>
                 ))}
                 {entries.length > 0 && (
                   <button onClick={onClearAll}
-                    style={{ width: '100%', textAlign: 'left', padding: '4px 10px 6px 34px', fontSize: 11, color: mut, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    style={{ width: '100%', textAlign: 'left', padding: '4px 16px 6px 40px', fontSize: 10, color: 'var(--tc-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.04em' }}>
                     Archive all
                   </button>
                 )}
@@ -313,19 +323,40 @@ function Sidebar({ activeTab, setActiveTab, isDark, toggleTheme, email, signOut,
           </div>
         </div>
 
-        {/* Footer */}
-        <div style={{ borderTop: `1px solid ${brd}`, padding: '10px 12px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: txt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</div>
-              <button onClick={signOut} style={{ fontSize: 11, color: mut, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit', marginTop: 1 }}>Sign out</button>
-            </div>
-            <button onClick={toggleTheme}
-              style={{ width: 28, height: 28, borderRadius: 6, border: `1px solid ${brd}`, background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: sec, flexShrink: 0 }}>
-              {isDark
-                ? <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 110 8 4 4 0 010-8z"/></svg>
-                : <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-              }
+        {/* Footer — theme selector + accent + sign out */}
+        <div style={{ borderTop: `var(--tc-bw) solid var(--tc-border)`, padding: '10px 14px', flexShrink: 0 }}>
+          <div style={{ fontSize: 10, color: 'var(--tc-muted)', fontFamily: mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 8 }}>{email}</div>
+
+          {/* Theme selector */}
+          <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
+            {(['brutalist', 'editorial', 'dark'] as ThemeMode[]).map(th => (
+              <button key={th} onClick={() => setTheme(th)}
+                style={{
+                  flex: 1, padding: '5px 4px', fontSize: 9, fontWeight: 700,
+                  letterSpacing: '.06em', textTransform: 'uppercase',
+                  border: `var(--tc-bw) solid ${theme === th ? 'var(--tc-border)' : 'transparent'}`,
+                  background: theme === th ? 'var(--tc-chip)' : 'transparent',
+                  color: theme === th ? 'var(--tc-text)' : 'var(--tc-muted)',
+                  cursor: 'pointer', fontFamily: mono, borderRadius: 'var(--tc-r)',
+                }}>
+                {THEME_LABELS[th]}
+              </button>
+            ))}
+          </div>
+
+          {/* Accent color dots + sign out */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {ACCENT_PRESETS.map(a => (
+              <button key={a} onClick={() => setAccent(a)}
+                style={{
+                  width: 14, height: 14, borderRadius: '50%', background: a, cursor: 'pointer',
+                  border: accent === a ? '2px solid var(--tc-text)' : `1px solid var(--tc-border)`,
+                  padding: 0, flexShrink: 0,
+                }} />
+            ))}
+            <button onClick={signOut}
+              style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--tc-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              Sign out
             </button>
           </div>
         </div>
@@ -337,7 +368,7 @@ function Sidebar({ activeTab, setActiveTab, isDark, toggleTheme, email, signOut,
 // ── Main app ──────────────────────────────────────────────────────────────────
 export default function Home() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { theme, toggle: toggleTheme }          = useTheme();
+  const { theme, accent, setTheme, setAccent }  = useTheme();
   const [activeTab,     setActiveTab]     = useState<Tab>('rephrase');
   const [loadedSession, setLoadedSession] = useState<HistoryEntry | null>(null);
   const [mobileOpen,    setMobileOpen]    = useState(false);
@@ -349,12 +380,9 @@ export default function Home() {
     setActiveTab(TAB_ID_MAP[entry.type] ?? 'rephrase');
   }, []);
 
-  const isDark = theme === 'dark';
-  const bg     = isDark ? '#141412' : '#fafaf9';
-
   if (authLoading) return (
-    <div style={{ minHeight: '100vh', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#a8a29e' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--tc-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--tc-muted)' }}>
         <Spin size={16} /><span style={{ fontSize: 13 }}>Loading…</span>
       </div>
     </div>
@@ -365,23 +393,25 @@ export default function Home() {
   return (
     <>
       {/* Mobile-only hamburger strip */}
-      <div className="mobile-topbar" style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 30, background: isDark ? '#1c1917' : '#ffffff', borderBottom: `1px solid ${isDark ? '#292524' : '#e7e5e0'}`, padding: '10px 16px', alignItems: 'center', gap: 10 }}>
+      <div className="mobile-topbar" style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 30, background: 'var(--tc-sidebar)', borderBottom: `var(--tc-bw) solid var(--tc-border)`, padding: '10px 16px', alignItems: 'center', gap: 10 }}>
         <button onClick={() => setMobileOpen(true)}
-          style={{ width: 32, height: 32, border: `1px solid ${isDark ? '#292524' : '#e7e5e0'}`, borderRadius: 6, background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDark ? '#a8a29e' : '#78716c', flexShrink: 0 }}>
+          style={{ width: 32, height: 32, border: `var(--tc-bw) solid var(--tc-border)`, borderRadius: 'var(--tc-r)', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-muted)', flexShrink: 0 }}>
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <div style={{ width: 22, height: 22, borderRadius: 6, background: isDark ? '#fafaf9' : '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isDark ? '#141412' : '#fff', fontWeight: 700, fontSize: 8 }}>CO</div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#fafaf9' : '#1c1917' }}>ToneCraft</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 22, height: 22, background: 'var(--tc-accent)', border: `var(--tc-bw) solid var(--tc-border)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-on)', fontWeight: 900, fontSize: 8 }}>CO</div>
+          <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', fontFamily: 'var(--font-geist-mono), monospace' }}>ToneCraft</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: bg }}>
+      <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--tc-bg)' }}>
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          isDark={isDark}
-          toggleTheme={toggleTheme}
+          theme={theme}
+          accent={accent}
+          setTheme={setTheme}
+          setAccent={setAccent}
           email={user.email ?? ''}
           signOut={signOut}
           entries={entries}
@@ -392,7 +422,7 @@ export default function Home() {
           setMobileOpen={setMobileOpen}
         />
 
-        <main className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', background: bg, minWidth: 0 }}>
+        <main className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', background: 'var(--tc-bg)', minWidth: 0 }}>
           <div key={activeTab} className="fade-in-up">
             {activeTab === 'rephrase'        && <RephraseTab        loadSession={loadedSession?.type === 'rephrase'        ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'quickreply'      && <QuickReplyTab      loadSession={loadedSession?.type === 'quickreply'      ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
@@ -411,7 +441,7 @@ export default function Home() {
       <style>{`
         @media (max-width: 768px) {
           .mobile-topbar { display: flex !important; }
-          .tc-sidebar { position: fixed !important; left: -220px; top: 0; transition: left .22s cubic-bezier(0.22,1,0.36,1); padding-top: 0; }
+          .tc-sidebar { position: fixed !important; left: -220px; top: 0; transition: left .22s cubic-bezier(0.22,1,0.36,1); }
           .sidebar-mobile-open { left: 0 !important; box-shadow: 4px 0 24px rgba(0,0,0,0.18) !important; }
           .mobile-backdrop { display: block !important; }
           .mobile-only { display: flex !important; }

@@ -51,56 +51,143 @@ body {
 }
 
 /* ── ToneCraft CSS design tokens ────────────────────────────────────────────── */
+
+/* Editorial theme (default) */
 :root {
-  --tc-text:   #1c1917;
-  --tc-sec:    #78716c;
-  --tc-muted:  #a8a29e;
-  --tc-border: #e7e5e0;
-  --tc-faint:  #f0ede8;
-  --tc-card:   #ffffff;
-  --tc-chip:   #f5f4f1;
-  --tc-hover:  #f7f6f3;
-  --tc-accent: #18181b;
-  --tc-on:     #ffffff;
+  --tc-bg:         #fafaf9;
+  --tc-sidebar:    #ffffff;
+  --tc-card:       #ffffff;
+  --tc-border:     #e7e5e0;
+  --tc-bw:         1px;
+  --tc-r:          6px;
+  --tc-text:       #1c1917;
+  --tc-sec:        #78716c;
+  --tc-muted:      #a8a29e;
+  --tc-faint:      #f0ede8;
+  --tc-chip:       #f5f4f1;
+  --tc-chipB:      #e7e5e0;
+  --tc-hover:      #f7f6f3;
+  --tc-accent:     #18181b;
+  --tc-on:         #ffffff;
+  --tc-s1:         #f0ede8;
+  --tc-s2:         #e7e5e0;
+  --tc-hw:         600;
+  --tc-label-sz:   10.5px;
+  --tc-label-sp:   .07em;
 }
+
+/* Brutalist theme */
+html[data-theme="brutalist"] {
+  --tc-bg:         #ffffff;
+  --tc-sidebar:    #ffffff;
+  --tc-card:       #ffffff;
+  --tc-border:     #000000;
+  --tc-bw:         2px;
+  --tc-r:          0px;
+  --tc-text:       #000000;
+  --tc-sec:        #444444;
+  --tc-muted:      #888888;
+  --tc-faint:      #eeeeee;
+  --tc-chip:       #f0f0f0;
+  --tc-chipB:      #000000;
+  --tc-hover:      #f5f5f5;
+  --tc-accent:     #f5c518;
+  --tc-on:         #000000;
+  --tc-s1:         #eeeeee;
+  --tc-s2:         #e0e0e0;
+  --tc-hw:         900;
+  --tc-label-sz:   10px;
+  --tc-label-sp:   .1em;
+}
+
+/* Dark theme */
+html[data-theme="dark"],
 html.dark {
-  --tc-text:   #fafaf9;
-  --tc-sec:    #a8a29e;
-  --tc-muted:  #57534e;
-  --tc-border: #292524;
-  --tc-faint:  #1f1e1c;
-  --tc-card:   #1c1917;
-  --tc-chip:   #242220;
-  --tc-hover:  #211f1e;
-  --tc-accent: #fafaf9;
-  --tc-on:     #141412;
+  --tc-bg:         #0a0a0a;
+  --tc-sidebar:    #111111;
+  --tc-card:       #111111;
+  --tc-border:     #2a2a2a;
+  --tc-bw:         1px;
+  --tc-r:          4px;
+  --tc-text:       #f5f5f5;
+  --tc-sec:        #888888;
+  --tc-muted:      #555555;
+  --tc-faint:      #1a1a1a;
+  --tc-chip:       #1a1a1a;
+  --tc-chipB:      #2a2a2a;
+  --tc-hover:      #1c1c1c;
+  --tc-accent:     #f5c518;
+  --tc-on:         #000000;
+  --tc-s1:         #1a1a1a;
+  --tc-s2:         #222222;
+  --tc-hw:         700;
+  --tc-label-sz:   10px;
+  --tc-label-sp:   .08em;
+}
+
+/* App & sidebar backgrounds respond to theme */
+.app-bg   { background: var(--tc-bg); }
+.tc-sidebar {
+  background:   var(--tc-sidebar);
+  border-right: var(--tc-bw) solid var(--tc-border);
+}
+
+/* Brutalist: body uses Geist Mono everywhere */
+html[data-theme="brutalist"] body {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 /* ── View layout ─────────────────────────────────────────────────────────────── */
 .tc-view {
-  max-width: 680px;
+  max-width: 700px;
   margin: 0 auto;
-  padding: 40px 32px;
+  padding: 36px 32px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 @media (max-width: 600px) { .tc-view { padding: 24px 16px; gap: 18px; } }
 
+/* ── View header (title + description block) ─────────────────────────────────── */
+.tc-view-header {
+  border-bottom: var(--tc-bw) solid var(--tc-border);
+  padding-bottom: 20px;
+}
+.tc-heading {
+  font-size: 20px;
+  font-weight: var(--tc-hw);
+  color: var(--tc-text);
+  letter-spacing: -.3px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  margin-bottom: 6px;
+  line-height: 1.15;
+}
+html[data-theme="brutalist"] .tc-heading {
+  font-size: 26px;
+  text-transform: uppercase;
+  letter-spacing: -.5px;
+}
+.tc-desc {
+  font-size: 13px;
+  color: var(--tc-sec);
+  line-height: 1.6;
+}
+
 /* ── Section label ───────────────────────────────────────────────────────────── */
 .tc-label {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: .07em;
+  font-size: var(--tc-label-sz, 10.5px);
+  font-weight: 700;
+  letter-spacing: var(--tc-label-sp, .07em);
   text-transform: uppercase;
   color: var(--tc-muted);
   margin-bottom: 8px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 /* ── Card surface ────────────────────────────────────────────────────────────── */
 .tc-card {
-  border: 1px solid var(--tc-border);
-  border-radius: 8px;
+  border: var(--tc-bw) solid var(--tc-border);
+  border-radius: var(--tc-r);
   background: var(--tc-card);
   padding: 20px;
 }
@@ -108,10 +195,10 @@ html.dark {
 /* ── Textarea ────────────────────────────────────────────────────────────────── */
 .tc-textarea {
   width: 100%;
-  border: 1px solid var(--tc-border);
-  border-radius: 8px;
+  border: var(--tc-bw) solid var(--tc-border);
+  border-radius: var(--tc-r);
   background: var(--tc-card);
-  padding: 12px 14px;
+  padding: 14px 16px;
   font-size: 14px;
   color: var(--tc-text);
   outline: none;
@@ -128,14 +215,14 @@ html.dark {
 /* ── Text input ──────────────────────────────────────────────────────────────── */
 .tc-input {
   width: 100%;
-  border: 1px solid var(--tc-border);
-  border-radius: 6px;
+  border: var(--tc-bw) solid var(--tc-border);
+  border-radius: var(--tc-r);
   background: var(--tc-card);
-  padding: 9px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   color: var(--tc-text);
   outline: none;
-  font-family: inherit;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   box-sizing: border-box;
   transition: border-color .15s;
   display: block;
@@ -145,34 +232,41 @@ html.dark {
 
 /* ── Chip (tone/option pill) ─────────────────────────────────────────────────── */
 .tc-chip {
-  padding: 5px 14px;
-  border-radius: 4px;
-  border: 1px solid var(--tc-border);
+  padding: 7px 16px;
+  border-radius: var(--tc-r);
+  border: var(--tc-bw) solid var(--tc-chipB);
   background: var(--tc-chip);
   color: var(--tc-sec);
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all .1s;
-  font-family: inherit;
+  transition: all .08s;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
-.tc-chip:hover:not(.tc-active) { background: var(--tc-faint); border-color: #d6d3d1; }
-.tc-chip.tc-active { background: var(--tc-accent); border-color: var(--tc-accent); color: var(--tc-on); font-weight: 500; }
+.tc-chip:hover:not(.tc-active) { background: var(--tc-hover); }
+.tc-chip.tc-active {
+  background: var(--tc-accent);
+  border-color: var(--tc-accent);
+  color: var(--tc-on);
+  font-weight: 700;
+}
 
 /* ── Stance card (larger selectable card) ────────────────────────────────────── */
 .tc-stance {
-  padding: 12px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--tc-border);
+  padding: 16px 14px;
+  border-radius: var(--tc-r);
+  border: var(--tc-bw) solid var(--tc-chipB);
   background: var(--tc-chip);
   cursor: pointer;
   text-align: left;
-  transition: all .1s;
-  font-family: inherit;
+  transition: all .08s;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
-.tc-stance:hover:not(.tc-active) { background: var(--tc-hover); border-color: var(--tc-border); }
+.tc-stance:hover:not(.tc-active) { background: var(--tc-hover); }
 .tc-stance.tc-active { background: var(--tc-accent); border-color: var(--tc-accent); }
 
 /* ── Primary action button ───────────────────────────────────────────────────── */
@@ -181,20 +275,23 @@ html.dark {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 20px;
-  border-radius: 6px;
+  padding: 14px 28px;
+  border-radius: var(--tc-r);
   background: var(--tc-accent);
   color: var(--tc-on);
-  font-weight: 600;
+  font-weight: 900;
   font-size: 13px;
-  border: none;
+  border: var(--tc-bw) solid var(--tc-border);
   cursor: pointer;
-  min-width: 160px;
+  min-width: 180px;
   align-self: flex-start;
-  font-family: inherit;
-  transition: filter .15s;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: opacity .12s;
 }
-.tc-btn:hover:not(:disabled) { filter: brightness(1.18); }
+html[data-theme="editorial"] .tc-btn { border-color: transparent; }
+.tc-btn:hover:not(:disabled) { opacity: 0.85; }
 .tc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Error strip ─────────────────────────────────────────────────────────────── */
@@ -202,57 +299,67 @@ html.dark {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-radius: 6px;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
+  border-radius: var(--tc-r);
+  border: var(--tc-bw) solid #ff0000;
+  background: #fff0f0;
   padding: 9px 13px;
   font-size: 12px;
-  color: #b91c1c;
+  color: #cc0000;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 /* ── Result list ─────────────────────────────────────────────────────────────── */
-.tc-result-list { border: 1px solid var(--tc-border); border-radius: 8px; overflow: hidden; }
+.tc-result-list {
+  border: var(--tc-bw) solid var(--tc-border);
+  border-radius: var(--tc-r);
+  overflow: hidden;
+}
 .tc-result-row {
   display: flex;
   align-items: flex-start;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--tc-faint);
-  transition: background .12s;
+  border-bottom: var(--tc-bw) solid var(--tc-faint);
+  transition: background .1s;
   position: relative;
+  background: var(--tc-card);
 }
 .tc-result-row:last-child { border-bottom: none; }
 .tc-result-row:hover { background: var(--tc-hover); }
+html[data-theme="brutalist"] .tc-result-row:hover::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--tc-accent);
+}
 
 /* ── Copy button (shows on row hover) ───────────────────────────────────────── */
 .tc-copy {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: 1px solid var(--tc-border);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--tc-r);
+  border: var(--tc-bw) solid var(--tc-border);
   background: var(--tc-chip);
   color: var(--tc-sec);
   cursor: pointer;
   transition: all .12s;
-  font-family: inherit;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
   flex-shrink: 0;
   opacity: 0;
+  text-transform: uppercase;
+  letter-spacing: .04em;
 }
 .tc-result-row:hover .tc-copy,
 .tc-copy.copied { opacity: 1; }
-.tc-copy.copied { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.tc-copy.copied { background: #efffee; border-color: #00cc44; color: #008833; }
 
 /* ── Skeleton shimmer bars ───────────────────────────────────────────────────── */
-.tc-skeletons { border: 1px solid var(--tc-border); border-radius: 8px; overflow: hidden; }
-
-/* App background */
-.app-bg { background: #fafaf9; }
-
-/* Sidebar surface */
-.tc-sidebar {
-  background: #ffffff;
-  border-right: 1px solid #e7e5e0;
+.tc-skeletons {
+  border: var(--tc-bw) solid var(--tc-border);
+  border-radius: var(--tc-r);
+  overflow: hidden;
 }
 
 /* Glass (auth page, overlays) */
@@ -333,10 +440,10 @@ html.dark {
   100% { background-position: 700px 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #f0ede8 25%, #e7e5e0 50%, #f0ede8 75%);
+  background: linear-gradient(90deg, var(--tc-s1) 25%, var(--tc-s2) 50%, var(--tc-s1) 75%);
   background-size: 1400px 100%;
   animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 0.5rem;
+  border-radius: var(--tc-r);
 }
 
 @keyframes growBar { from { width: 0%; } }
@@ -380,10 +487,8 @@ html.dark {
   --shadow-btn-hover: 0 4px 16px rgba(0,0,0,0.70);
 }
 
-html.dark body { background: #141412; color: #fafaf9; }
-html.dark .app-bg { background: #141412; }
-html.dark .tc-sidebar { background: #1c1917; border-color: #292524; }
-html.dark .glass { background: rgba(20,20,18,0.92) !important; border-color: rgba(255,255,255,0.06) !important; }
+html.dark body { background: var(--tc-bg); color: var(--tc-text); }
+html.dark .glass { background: rgba(10,10,10,0.92) !important; border-color: rgba(255,255,255,0.06) !important; }
 
 /* Dark cards */
 html.dark .bg-white      { background-color: #1c1917 !important; }
@@ -492,11 +597,6 @@ html.dark .btn-primary {
 }
 html.dark .btn-primary:hover:not(:disabled) { filter: brightness(0.92) !important; }
 
-/* Dark skeleton */
-html.dark .skeleton {
-  background: linear-gradient(90deg, #1f1e1c 25%, #242220 50%, #1f1e1c 75%);
-  background-size: 1400px 100%;
-}
 
 /* Dark result card */
 html.dark .result-card:hover { border-color: rgba(255,255,255,0.14) !important; }

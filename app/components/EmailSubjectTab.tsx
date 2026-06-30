@@ -68,9 +68,9 @@ export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props)
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Email Subject</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Generate five subject lines — each from a different angle — for any email.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Email Subject</h1>
+        <p className="tc-desc">Generate five subject lines — each from a different angle — for any email.</p>
       </div>
 
       <div>

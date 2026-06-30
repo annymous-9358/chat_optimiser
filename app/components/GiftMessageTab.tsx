@@ -86,9 +86,9 @@ export default function GiftMessageTab({ loadSession, onSessionLoaded }: Props) 
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Gift Message</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Write a heartfelt, witty, or poetic message for any occasion and recipient.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Gift Message</h1>
+        <p className="tc-desc">Write a heartfelt, witty, or poetic message for any occasion and recipient.</p>
       </div>
 
       <div>

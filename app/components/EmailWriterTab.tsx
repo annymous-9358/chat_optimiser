@@ -92,9 +92,9 @@ export default function EmailWriterTab({ loadSession, onSessionLoaded }: Props) 
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Email Writer</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Generate a complete email — subject line and body — from a brief description.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Email Writer</h1>
+        <p className="tc-desc">Generate a complete email — subject line and body — from a brief description.</p>
       </div>
 
       <div>

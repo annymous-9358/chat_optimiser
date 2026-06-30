@@ -75,9 +75,9 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Tone Analyzer</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Understand the emotional tone and communication style of any message.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Tone Analyzer</h1>
+        <p className="tc-desc">Understand the emotional tone and communication style of any message.</p>
       </div>
 
       <div>

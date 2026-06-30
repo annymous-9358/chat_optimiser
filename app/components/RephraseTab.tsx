@@ -73,9 +73,9 @@ export default function RephraseTab({ loadSession, onSessionLoaded }: Props) {
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Rephrase</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Rewrite any message in the tone that fits your relationship and context.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Rephrase</h1>
+        <p className="tc-desc">Rewrite any message in the tone that fits your relationship and context.</p>
       </div>
 
       <div>

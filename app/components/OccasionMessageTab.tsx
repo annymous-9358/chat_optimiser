@@ -101,9 +101,9 @@ export default function OccasionMessageTab({ loadSession, onSessionLoaded }: Pro
 
   return (
     <div className="tc-view">
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--tc-text)', letterSpacing: '-.3px', marginBottom: 4 }}>Occasion Message</h1>
-        <p style={{ fontSize: 13, color: 'var(--tc-sec)', lineHeight: 1.6 }}>Generate warm, professional, or heartfelt messages for any occasion.</p>
+      <div className="tc-view-header">
+        <h1 className="tc-heading">Occasion Message</h1>
+        <p className="tc-desc">Generate warm, professional, or heartfelt messages for any occasion.</p>
       </div>
 
       <div>
