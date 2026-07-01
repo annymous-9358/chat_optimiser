@@ -44,8 +44,8 @@ const TAB_ID_MAP: Record<string, Tab> = {
   emailsubject: 'emailsubject', emailwriter: 'emailwriter',
 };
 
-const ACCENT_PRESETS = ['#f5c518', '#ff3b30', '#00c853', '#0057ff', '#ff6b00', '#ffffff'];
-const THEME_LABELS: Record<ThemeMode, string> = { brutalist: 'B', editorial: 'E', dark: 'D' };
+const ACCENT_PRESETS = ['#6366f1', '#f5c518', '#ff3b30', '#00c853', '#ff6b00', '#ffffff'];
+const THEME_LABELS: Record<ThemeMode, string> = { glass: 'G', editorial: 'E', brutalist: 'B' };
 
 function timeAgo(ts: number): string {
   const d = Date.now() - ts, m = Math.floor(d / 60000);
@@ -329,7 +329,7 @@ function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, 
 
           {/* Theme selector */}
           <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
-            {(['brutalist', 'editorial', 'dark'] as ThemeMode[]).map(th => (
+            {(['glass', 'editorial', 'brutalist'] as ThemeMode[]).map(th => (
               <button key={th} onClick={() => setTheme(th)}
                 style={{
                   flex: 1, padding: '5px 4px', fontSize: 9, fontWeight: 700,
@@ -405,6 +405,11 @@ export default function Home() {
       </div>
 
       <div className="app-layout">
+        {theme === 'glass' && (
+          <div className="tc-blobs" aria-hidden>
+            <span className="b1" /><span className="b2" /><span className="b3" />
+          </div>
+        )}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -422,7 +427,7 @@ export default function Home() {
           setMobileOpen={setMobileOpen}
         />
 
-        <main className="scrollbar-hide app-main" style={{ flex: 1, overflowY: 'auto', background: 'var(--tc-bg)', minWidth: 0 }}>
+        <main className="scrollbar-hide app-main" style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
           <div key={activeTab} className="fade-in-up">
             {activeTab === 'rephrase'        && <RephraseTab        loadSession={loadedSession?.type === 'rephrase'        ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'quickreply'      && <QuickReplyTab      loadSession={loadedSession?.type === 'quickreply'      ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}

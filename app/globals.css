@@ -74,6 +74,9 @@ body {
   --tc-hw:         600;
   --tc-label-sz:   10.5px;
   --tc-label-sp:   .07em;
+  --tc-blur:       none;
+  --tc-glass-shadow: none;
+  --tc-btn-glow:   none;
 }
 
 /* Brutalist theme */
@@ -100,36 +103,42 @@ html[data-theme="brutalist"] {
   --tc-label-sp:   .1em;
 }
 
-/* Dark theme */
-html[data-theme="dark"],
+/* Glass theme — glassmorphism, liquid blobs (Convey design) */
+html[data-theme="glass"],
 html.dark {
-  --tc-bg:         #0a0a0a;
-  --tc-sidebar:    #111111;
-  --tc-card:       #111111;
-  --tc-border:     #2a2a2a;
+  --tc-page-bg:    #060914;
+  --tc-bg:         transparent;
+  --tc-sidebar:    rgba(255,255,255,0.07);
+  --tc-card:       rgba(255,255,255,0.05);
+  --tc-border:     rgba(255,255,255,0.14);
   --tc-bw:         1px;
-  --tc-r:          4px;
-  --tc-text:       #f5f5f5;
-  --tc-sec:        #888888;
-  --tc-muted:      #555555;
-  --tc-faint:      #1a1a1a;
-  --tc-chip:       #1a1a1a;
-  --tc-chipB:      #2a2a2a;
-  --tc-hover:      #1c1c1c;
-  --tc-accent:     #f5c518;
-  --tc-on:         #000000;
-  --tc-s1:         #1a1a1a;
-  --tc-s2:         #222222;
+  --tc-r:          14px;
+  --tc-text:       #f0f4ff;
+  --tc-sec:        rgba(240,244,255,0.6);
+  --tc-muted:      rgba(240,244,255,0.35);
+  --tc-faint:      rgba(255,255,255,0.08);
+  --tc-chip:       rgba(255,255,255,0.06);
+  --tc-chipB:      rgba(255,255,255,0.14);
+  --tc-hover:      rgba(255,255,255,0.11);
+  --tc-accent:     #6366f1;
+  --tc-on:         #ffffff;
+  --tc-s1:         rgba(255,255,255,0.06);
+  --tc-s2:         rgba(255,255,255,0.1);
   --tc-hw:         700;
   --tc-label-sz:   10px;
   --tc-label-sp:   .08em;
+  --tc-blur:       blur(20px);
+  --tc-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.3);
+  --tc-btn-glow:   0 4px 20px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
 /* App & sidebar backgrounds respond to theme */
 .app-bg   { background: var(--tc-bg); }
 .tc-sidebar {
-  background:   var(--tc-sidebar);
-  border-right: var(--tc-bw) solid var(--tc-border);
+  background:      var(--tc-sidebar);
+  border-right:    var(--tc-bw) solid var(--tc-border);
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
 }
 
 /* Brutalist: body uses Geist Mono everywhere */
@@ -190,6 +199,9 @@ html[data-theme="brutalist"] .tc-heading {
   border-radius: var(--tc-r);
   background: var(--tc-card);
   padding: 20px;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
+  box-shadow: var(--tc-glass-shadow);
 }
 
 /* ── Textarea ────────────────────────────────────────────────────────────────── */
@@ -208,8 +220,10 @@ html[data-theme="brutalist"] .tc-heading {
   box-sizing: border-box;
   transition: border-color .15s;
   display: block;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
 }
-.tc-textarea:focus { border-color: var(--tc-text); }
+.tc-textarea:focus { border-color: var(--tc-accent); }
 .tc-textarea::placeholder { color: var(--tc-muted); }
 
 /* ── Text input ──────────────────────────────────────────────────────────────── */
@@ -226,8 +240,10 @@ html[data-theme="brutalist"] .tc-heading {
   box-sizing: border-box;
   transition: border-color .15s;
   display: block;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
 }
-.tc-input:focus { border-color: var(--tc-text); }
+.tc-input:focus { border-color: var(--tc-accent); }
 .tc-input::placeholder { color: var(--tc-muted); }
 
 /* ── Chip (tone/option pill) ─────────────────────────────────────────────────── */
@@ -246,6 +262,8 @@ html[data-theme="brutalist"] .tc-heading {
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: .05em;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
 }
 .tc-chip:hover:not(.tc-active) { background: var(--tc-hover); }
 .tc-chip.tc-active {
@@ -265,6 +283,8 @@ html[data-theme="brutalist"] .tc-heading {
   text-align: left;
   transition: all .08s;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
 }
 .tc-stance:hover:not(.tc-active) { background: var(--tc-hover); }
 .tc-stance.tc-active { background: var(--tc-accent); border-color: var(--tc-accent); }
@@ -289,6 +309,7 @@ html[data-theme="brutalist"] .tc-heading {
   letter-spacing: .06em;
   text-transform: uppercase;
   transition: opacity .12s;
+  box-shadow: var(--tc-btn-glow);
 }
 html[data-theme="editorial"] .tc-btn { border-color: transparent; }
 .tc-btn:hover:not(:disabled) { opacity: 0.85; }
@@ -307,12 +328,23 @@ html[data-theme="editorial"] .tc-btn { border-color: transparent; }
   color: #cc0000;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
+html[data-theme="glass"] .tc-err,
+html.dark .tc-err {
+  border-color: rgba(239,68,68,0.5);
+  background: rgba(239,68,68,0.1);
+  color: #fca5a5;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
+}
 
 /* ── Result list ─────────────────────────────────────────────────────────────── */
 .tc-result-list {
   border: var(--tc-bw) solid var(--tc-border);
   border-radius: var(--tc-r);
   overflow: hidden;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
+  box-shadow: var(--tc-glass-shadow);
 }
 .tc-result-row {
   display: flex;
@@ -518,18 +550,19 @@ html.dark .border-slate-100\/80  { border-color: rgba(255,255,255,0.05) !importa
 html.dark .border-slate-100      { border-color: rgba(255,255,255,0.05) !important; }
 html.dark .divide-slate-100\/80 > * + * { border-color: rgba(255,255,255,0.05) !important; }
 
-/* Dark inputs */
-html.dark input,
-html.dark textarea,
-html.dark select {
+/* Dark inputs — scoped to the signed-in app shell (the sign-in page keeps its own fixed light inputs),
+   and excludes tc-input/tc-textarea which are already theme-aware via CSS vars (incl. the glass look) */
+html.dark .app-layout input:not(.tc-input),
+html.dark .app-layout textarea:not(.tc-textarea),
+html.dark .app-layout select {
   background-color: rgba(28,25,23,0.85) !important;
   border-color: #292524 !important;
   color: #fafaf9 !important;
 }
-html.dark input::placeholder,
-html.dark textarea::placeholder { color: #57534e !important; }
-html.dark input:focus,
-html.dark textarea:focus {
+html.dark .app-layout input:not(.tc-input)::placeholder,
+html.dark .app-layout textarea:not(.tc-textarea)::placeholder { color: #57534e !important; }
+html.dark .app-layout input:not(.tc-input):focus,
+html.dark .app-layout textarea:not(.tc-textarea):focus {
   background-color: #1c1917 !important;
   border-color: rgba(255,255,255,0.28) !important;
   box-shadow: 0 0 0 3px rgba(255,255,255,0.07) !important;
@@ -606,14 +639,54 @@ html.dark .bg-slate-800 { background-color: #141412 !important; }
 html.dark .bg-slate-900 { background-color: #0f0e0d !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
+   LIQUID BLOBS  (glass theme background)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes tc-blob-1 {
+  0%,100% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; transform: translate(0,0) scale(1); }
+  33%     { border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; transform: translate(40px,-30px) scale(1.07); }
+  66%     { border-radius: 50% 50% 40% 60%/30% 70% 50% 40%; transform: translate(-25px,20px) scale(0.96); }
+}
+@keyframes tc-blob-2 {
+  0%,100% { border-radius: 40% 60% 60% 40%/30% 30% 70% 70%; transform: translate(0,0) scale(1); }
+  33%     { border-radius: 60% 40% 30% 70%/60% 40% 40% 60%; transform: translate(-35px,40px) scale(1.1); }
+  66%     { border-radius: 30% 70% 50% 50%/50% 50% 30% 70%; transform: translate(25px,-15px) scale(0.93); }
+}
+@keyframes tc-blob-3 {
+  0%,100% { border-radius: 70% 30% 50% 50%/40% 60% 40% 60%; transform: translate(0,0) scale(1); }
+  50%     { border-radius: 30% 70% 30% 70%/60% 30% 70% 40%; transform: translate(20px,35px) scale(1.05); }
+}
+.tc-blobs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.tc-blobs span {
+  position: absolute;
+  display: block;
+  filter: blur(80px);
+  will-change: transform, border-radius;
+}
+.tc-blobs .b1 { width: 520px; height: 480px; top: -20%; right: -5%;  background: var(--tc-accent); animation: tc-blob-1 16s ease-in-out infinite; }
+.tc-blobs .b2 { width: 460px; height: 420px; bottom: -15%; left: -8%; background: #7c3aed; animation: tc-blob-2 20s ease-in-out infinite; }
+.tc-blobs .b3 { width: 300px; height: 280px; top: 35%; left: 25%; opacity: .5; background: var(--tc-accent); animation: tc-blob-3 25s ease-in-out infinite; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE LAYOUT
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Base: sidebar always visible, stacked layout */
 .app-layout {
   display: flex;
+  position: relative;
   height: 100dvh;
   overflow: hidden;
+  background: var(--tc-page-bg, var(--tc-bg));
+}
+.app-main {
+  position: relative;
+  z-index: 1;
   background: var(--tc-bg);
 }
 
@@ -630,6 +703,8 @@ html.dark .bg-slate-900 { background-color: #0f0e0d !important; }
   gap: 10px;
   height: 52px;
   box-sizing: border-box;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
 }
 
 /* Mobile-only elements hidden on desktop */
