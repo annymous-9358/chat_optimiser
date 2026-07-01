@@ -45,7 +45,7 @@ const TAB_ID_MAP: Record<string, Tab> = {
 };
 
 const ACCENT_PRESETS = ['#6366f1', '#f5c518', '#ff3b30', '#00c853', '#ff6b00', '#ffffff'];
-const THEME_LABELS: Record<ThemeMode, string> = { glass: 'G', editorial: 'E', brutalist: 'B' };
+const THEME_LABELS: Record<ThemeMode, string> = { glass: 'G', dark: 'D', editorial: 'E', brutalist: 'B' };
 
 function timeAgo(ts: number): string {
   const d = Date.now() - ts, m = Math.floor(d / 60000);
@@ -329,10 +329,10 @@ function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, 
 
           {/* Theme selector */}
           <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
-            {(['glass', 'editorial', 'brutalist'] as ThemeMode[]).map(th => (
+            {(['glass', 'dark', 'editorial', 'brutalist'] as ThemeMode[]).map(th => (
               <button key={th} onClick={() => setTheme(th)}
                 style={{
-                  flex: 1, padding: '5px 4px', fontSize: 9, fontWeight: 700,
+                  flex: 1, padding: '5px 2px', fontSize: 9, fontWeight: 700,
                   letterSpacing: '.06em', textTransform: 'uppercase',
                   border: `var(--tc-bw) solid ${theme === th ? 'var(--tc-border)' : 'transparent'}`,
                   background: theme === th ? 'var(--tc-chip)' : 'transparent',

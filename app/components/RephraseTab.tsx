@@ -106,7 +106,7 @@ export default function RephraseTab({ loadSession, onSessionLoaded }: Props) {
 
       <div>
         <div className="tc-label">Tone</div>
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }} className="scrollbar-hide">
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {TONES.map(tn => (
             <button key={tn.id} onClick={() => setTone(tn.id)}
               className={`tc-chip${tone === tn.id ? ' tc-active' : ''}`}>

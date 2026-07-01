@@ -2,15 +2,17 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-export type ThemeMode = 'brutalist' | 'editorial' | 'glass';
+export type ThemeMode = 'brutalist' | 'editorial' | 'dark' | 'glass';
 
 const ACCENT_DEFAULTS: Record<ThemeMode, string> = {
   brutalist: '#f5c518',
   editorial: '#18181b',
+  dark:      '#f5c518',
   glass:     '#6366f1',
 };
 
 const DEFAULT_THEME: ThemeMode = 'glass';
+const THEME_ORDER: ThemeMode[] = ['brutalist', 'editorial', 'dark', 'glass'];
 
 function hexLuminance(hex: string): number {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -26,7 +28,7 @@ function onColor(accent: string): string {
 function applyTheme(theme: ThemeMode, accent: string) {
   const html = document.documentElement;
   html.dataset.theme = theme;
-  html.classList.toggle('dark', theme === 'glass');
+  html.classList.toggle('dark', theme === 'dark' || theme === 'glass');
   html.style.setProperty('--tc-accent', accent);
   html.style.setProperty('--tc-on', onColor(accent));
 }
@@ -51,8 +53,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const savedTheme  = localStorage.getItem('co-theme') as ThemeMode | null;
     const savedAccent = localStorage.getItem('co-accent');
-    const validThemes: ThemeMode[] = ['brutalist', 'editorial', 'glass'];
-    const initialTheme: ThemeMode  = validThemes.includes(savedTheme as ThemeMode) ? (savedTheme as ThemeMode) : DEFAULT_THEME;
+    const initialTheme: ThemeMode  = THEME_ORDER.includes(savedTheme as ThemeMode) ? (savedTheme as ThemeMode) : DEFAULT_THEME;
     const initialAccent = savedAccent ?? ACCENT_DEFAULTS[initialTheme];
     setThemeState(initialTheme);
     setAccentState(initialAccent);
@@ -76,7 +77,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const toggle = () => {
-    const next: ThemeMode = theme === 'brutalist' ? 'editorial' : theme === 'editorial' ? 'glass' : 'brutalist';
+    const next = THEME_ORDER[(THEME_ORDER.indexOf(theme) + 1) % THEME_ORDER.length];
     setTheme(next);
   };
 

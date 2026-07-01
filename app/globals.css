@@ -103,9 +103,32 @@ html[data-theme="brutalist"] {
   --tc-label-sp:   .1em;
 }
 
+/* Dark theme — plain, solid, no blur/blobs */
+html[data-theme="dark"] {
+  --tc-bg:         #0a0a0a;
+  --tc-sidebar:    #111111;
+  --tc-card:       #111111;
+  --tc-border:     #2a2a2a;
+  --tc-bw:         1px;
+  --tc-r:          4px;
+  --tc-text:       #f5f5f5;
+  --tc-sec:        #888888;
+  --tc-muted:      #555555;
+  --tc-faint:      #1a1a1a;
+  --tc-chip:       #1a1a1a;
+  --tc-chipB:      #2a2a2a;
+  --tc-hover:      #1c1c1c;
+  --tc-accent:     #f5c518;
+  --tc-on:         #000000;
+  --tc-s1:         #1a1a1a;
+  --tc-s2:         #222222;
+  --tc-hw:         700;
+  --tc-label-sz:   10px;
+  --tc-label-sp:   .08em;
+}
+
 /* Glass theme — glassmorphism, liquid blobs (Convey design) */
-html[data-theme="glass"],
-html.dark {
+html[data-theme="glass"] {
   --tc-page-bg:    #060914;
   --tc-bg:         transparent;
   --tc-sidebar:    rgba(255,255,255,0.07);

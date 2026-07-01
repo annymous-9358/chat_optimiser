@@ -144,7 +144,7 @@ export default function EmailWriterTab({ loadSession, onSessionLoaded }: Props) 
 
       <div>
         <div className="tc-label">Tone</div>
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2 }} className="scrollbar-hide">
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {TONES.map(t => (
             <button key={t.id} onClick={() => setTone(t.id)} className={`tc-chip${tone === t.id ? ' tc-active' : ''}`}>{t.label}</button>
           ))}
