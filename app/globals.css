@@ -604,3 +604,119 @@ html.dark .result-card:hover { border-color: rgba(255,255,255,0.14) !important; 
 /* Dark misc */
 html.dark .bg-slate-800 { background-color: #141412 !important; }
 html.dark .bg-slate-900 { background-color: #0f0e0d !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE LAYOUT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Base: sidebar always visible, stacked layout */
+.app-layout {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--tc-bg);
+}
+
+/* Mobile topbar — hidden by default, shown on small screens */
+.mobile-topbar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 30;
+  background: var(--tc-sidebar);
+  border-bottom: var(--tc-bw) solid var(--tc-border);
+  padding: 10px 16px;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  box-sizing: border-box;
+}
+
+/* Mobile-only elements hidden on desktop */
+.mobile-only { display: none !important; }
+
+/* Sidebar base */
+.tc-sidebar {
+  background:   var(--tc-sidebar);
+  border-right: var(--tc-bw) solid var(--tc-border);
+  height: 100dvh;
+  flex-shrink: 0;
+}
+
+/* ── Mobile (< 768px) ──────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .mobile-topbar { display: flex; }
+
+  /* Slide-in drawer */
+  .tc-sidebar {
+    position: fixed !important;
+    left: -240px;
+    top: 0;
+    width: 240px !important;
+    height: 100dvh !important;
+    z-index: 50;
+    transition: left .25s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: none;
+  }
+  .sidebar-mobile-open {
+    left: 0 !important;
+    box-shadow: 6px 0 32px rgba(0,0,0,0.22) !important;
+  }
+
+  /* Mobile close button visible */
+  .mobile-only { display: flex !important; }
+
+  /* Main content below topbar */
+  .app-main {
+    padding-top: 52px;
+    width: 100%;
+  }
+
+  /* Tighter content padding on mobile */
+  .tc-view {
+    padding: 20px 16px;
+    gap: 16px;
+  }
+
+  /* Chips wrap and don't overflow */
+  .tc-chip-row {
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+  }
+
+  /* Stance/action grids go to 2 cols on mobile */
+  .tc-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Result row: hide label column on tiny screens */
+  .tc-result-label { display: none; }
+}
+
+/* ── Tablet (768px – 1023px) ───────────────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tc-sidebar {
+    width: 180px !important;
+    flex-shrink: 0;
+  }
+
+  .tc-view {
+    padding: 28px 20px;
+    max-width: 100%;
+  }
+}
+
+/* ── Large screen (≥ 1280px) ───────────────────────────────────────────── */
+@media (min-width: 1280px) {
+  .tc-view {
+    max-width: 720px;
+    padding: 40px 40px;
+  }
+}
+
+/* ── Extra large (≥ 1600px) ────────────────────────────────────────────── */
+@media (min-width: 1600px) {
+  .app-layout {
+    max-width: 1600px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 1px var(--tc-border);
+  }
+}

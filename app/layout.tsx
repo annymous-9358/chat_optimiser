@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ToneCraft",
+  title: "Convey",
   description: "Write with the perfect tone — rephrase, polish, reply, and more.",
 };
 

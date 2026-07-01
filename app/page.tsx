@@ -130,7 +130,7 @@ function AuthPage() {
       <div style={{ width: '100%', maxWidth: 320 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 32 }}>
           <div style={{ width: 28, height: 28, background: '#f5c518', border: '2px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 900, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0 }}>CO</div>
-          <span style={{ fontSize: 13, fontWeight: 900, color: '#1c1917', letterSpacing: '-.2px', fontFamily: 'var(--font-geist-mono), monospace', textTransform: 'uppercase' }}>ToneCraft</span>
+          <span style={{ fontSize: 13, fontWeight: 900, color: '#1c1917', letterSpacing: '-.2px', fontFamily: 'var(--font-geist-mono), monospace', textTransform: 'uppercase' }}>Convey</span>
         </div>
 
         <h1 style={{ fontSize: 20, fontWeight: 600, color: '#1c1917', letterSpacing: '-.3px', marginBottom: 4 }}>
@@ -228,7 +228,7 @@ function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, 
       )}
 
       <aside className={`tc-sidebar scrollbar-hide${mobileOpen ? ' sidebar-mobile-open' : ''}`}
-        style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', zIndex: 50, fontFamily: mono }}>
+        style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 50, fontFamily: mono }}>
 
         {/* Logo */}
         <div style={{ padding: '16px 14px 12px', borderBottom: `var(--tc-bw) solid var(--tc-border)`, flexShrink: 0 }}>
@@ -236,7 +236,7 @@ function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 28, height: 28, background: 'var(--tc-accent)', border: `var(--tc-bw) solid var(--tc-border)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-on)', fontWeight: 900, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0, fontFamily: mono }}>CO</div>
               <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', letterSpacing: isBrut ? '-.3px' : '-.2px', textTransform: isBrut ? 'uppercase' : 'none' }}>
-                ToneCraft
+                Convey
               </span>
             </div>
             <button onClick={() => setMobileOpen(false)} className="mobile-only"
@@ -393,18 +393,18 @@ export default function Home() {
   return (
     <>
       {/* Mobile-only hamburger strip */}
-      <div className="mobile-topbar" style={{ display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 30, background: 'var(--tc-sidebar)', borderBottom: `var(--tc-bw) solid var(--tc-border)`, padding: '10px 16px', alignItems: 'center', gap: 10 }}>
+      <div className="mobile-topbar">
         <button onClick={() => setMobileOpen(true)}
           style={{ width: 32, height: 32, border: `var(--tc-bw) solid var(--tc-border)`, borderRadius: 'var(--tc-r)', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-muted)', flexShrink: 0 }}>
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 22, height: 22, background: 'var(--tc-accent)', border: `var(--tc-bw) solid var(--tc-border)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-on)', fontWeight: 900, fontSize: 8 }}>CO</div>
-          <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', fontFamily: 'var(--font-geist-mono), monospace' }}>ToneCraft</span>
+          <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', fontFamily: 'var(--font-geist-mono), monospace' }}>Convey</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', background: 'var(--tc-bg)' }}>
+      <div className="app-layout">
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -422,7 +422,7 @@ export default function Home() {
           setMobileOpen={setMobileOpen}
         />
 
-        <main className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', background: 'var(--tc-bg)', minWidth: 0 }}>
+        <main className="scrollbar-hide app-main" style={{ flex: 1, overflowY: 'auto', background: 'var(--tc-bg)', minWidth: 0 }}>
           <div key={activeTab} className="fade-in-up">
             {activeTab === 'rephrase'        && <RephraseTab        loadSession={loadedSession?.type === 'rephrase'        ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'quickreply'      && <QuickReplyTab      loadSession={loadedSession?.type === 'quickreply'      ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
@@ -438,16 +438,6 @@ export default function Home() {
         </main>
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .mobile-topbar { display: flex !important; }
-          .tc-sidebar { position: fixed !important; left: -220px; top: 0; transition: left .22s cubic-bezier(0.22,1,0.36,1); }
-          .sidebar-mobile-open { left: 0 !important; box-shadow: 4px 0 24px rgba(0,0,0,0.18) !important; }
-          .mobile-backdrop { display: block !important; }
-          .mobile-only { display: flex !important; }
-          main { padding-top: 52px; }
-        }
-      `}</style>
     </>
   );
 }
