@@ -14,8 +14,11 @@ import GiftMessageTab     from './components/GiftMessageTab';
 import OccasionMessageTab from './components/OccasionMessageTab';
 import EmailSubjectTab    from './components/EmailSubjectTab';
 import EmailWriterTab     from './components/EmailWriterTab';
+import PromptEnhancerTab  from './components/PromptEnhancerTab';
+import AgentGeneratorTab  from './components/AgentGeneratorTab';
+import OfflineGame        from './components/OfflineGame';
 
-type Tab = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject' | 'emailwriter';
+type Tab = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject' | 'emailwriter' | 'promptenhancer' | 'agentgenerator';
 
 const TABS: { id: Tab; label: string; d: string }[] = [
   { id: 'rephrase',        label: 'Rephrase',       d: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
@@ -28,6 +31,8 @@ const TABS: { id: Tab; label: string; d: string }[] = [
   { id: 'giftmessage',     label: 'Gift Message',   d: 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7' },
   { id: 'emailsubject',    label: 'Email Subject',  d: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { id: 'emailwriter',     label: 'Email Writer',   d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
+  { id: 'promptenhancer',  label: 'Prompt Boost',   d: 'M13 10V3L4 14h7v7l9-11h-7z' },
+  { id: 'agentgenerator',  label: 'Agent Builder',  d: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
 ];
 
 const TYPE_LABELS: Record<string, string> = {
@@ -35,6 +40,7 @@ const TYPE_LABELS: Record<string, string> = {
   polish: 'Polish', standup: 'Standup', chatanalyzer: 'Chat Insights',
   giftmessage: 'Gift Message', occasionmessage: 'Occasions',
   emailsubject: 'Email Subject', emailwriter: 'Email Writer',
+  promptenhancer: 'Prompt Boost', agentgenerator: 'Agent Builder',
 };
 
 const TAB_ID_MAP: Record<string, Tab> = {
@@ -42,6 +48,7 @@ const TAB_ID_MAP: Record<string, Tab> = {
   polish: 'polish', standup: 'standup', chatanalyzer: 'chatanalyzer',
   giftmessage: 'giftmessage', occasionmessage: 'occasionmessage',
   emailsubject: 'emailsubject', emailwriter: 'emailwriter',
+  promptenhancer: 'promptenhancer', agentgenerator: 'agentgenerator',
 };
 
 const ACCENT_PRESETS = ['#6366f1', '#f5c518', '#ff3b30', '#00c853', '#ff6b00', '#ffffff'];
@@ -439,10 +446,13 @@ export default function Home() {
             {activeTab === 'giftmessage'     && <GiftMessageTab     loadSession={loadedSession?.type === 'giftmessage'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'emailsubject'    && <EmailSubjectTab    loadSession={loadedSession?.type === 'emailsubject'    ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'emailwriter'     && <EmailWriterTab     loadSession={loadedSession?.type === 'emailwriter'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'promptenhancer'  && <PromptEnhancerTab />}
+            {activeTab === 'agentgenerator'  && <AgentGeneratorTab />}
           </div>
         </main>
       </div>
 
+      <OfflineGame />
     </>
   );
 }
