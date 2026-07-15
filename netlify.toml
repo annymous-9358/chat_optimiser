@@ -7,3 +7,9 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "https://tone-craft.netlify.app/*"
+  to = "https://conveybot.in/:splat"
+  status = 301
+  force = true
