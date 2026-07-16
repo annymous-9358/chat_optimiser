@@ -22,7 +22,7 @@ function ChipRow({ label, options, value, onChange }: { label: string; options: 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {options.map(o => (
           <button key={o} onClick={() => onChange(o === value ? '' : o)}
-            className={`tc-chip${value === o ? ' tc-chip-active' : ''}`}>
+            className={`tc-chip${value === o ? ' tc-active' : ''}`}>
             {o}
           </button>
         ))}
@@ -106,7 +106,7 @@ export default function AgentGeneratorTab() {
               <div className="tc-label" style={{ marginBottom: 10 }}>Capabilities</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {result.capabilities.map((cap, i) => (
-                  <span key={i} className="tc-chip tc-chip-active" style={{ cursor: 'default' }}>{cap}</span>
+                  <span key={i} className="tc-chip tc-active" style={{ cursor: 'default' }}>{cap}</span>
                 ))}
               </div>
             </div>

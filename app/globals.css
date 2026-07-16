@@ -457,6 +457,54 @@ html[data-theme="brutalist"] .tc-result-row:hover::before {
 .tc-copy.copied { opacity: 1; }
 .tc-copy.copied { background: #efffee; border-color: #00cc44; color: #008833; }
 
+/* ── Result card (PromptEnhancer / AgentGenerator output blocks) ─────────────── */
+.tc-result-card {
+  border: var(--tc-bw) solid var(--tc-border);
+  border-radius: var(--tc-r);
+  background: var(--tc-card);
+  padding: 16px 20px;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
+  box-shadow: var(--tc-glass-shadow);
+}
+
+/* ── Error strip (inline) ────────────────────────────────────────────────────── */
+.tc-error {
+  border-radius: var(--tc-r);
+  border: var(--tc-bw) solid #ff0000;
+  background: #fff0f0;
+  padding: 9px 13px;
+  font-size: 12px;
+  color: #cc0000;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+html[data-theme="glass"] .tc-error,
+html.dark .tc-error {
+  border-color: rgba(239,68,68,0.5);
+  background: rgba(239,68,68,0.1);
+  color: #fca5a5;
+  backdrop-filter: var(--tc-blur);
+  -webkit-backdrop-filter: var(--tc-blur);
+}
+
+/* ── Copy button (always visible) ────────────────────────────────────────────── */
+.tc-copy-btn {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--tc-r);
+  border: var(--tc-bw) solid var(--tc-border);
+  background: var(--tc-chip);
+  color: var(--tc-sec);
+  cursor: pointer;
+  transition: all .12s;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.tc-copy-btn:hover { background: var(--tc-hover); }
+
 /* ── Skeleton shimmer bars ───────────────────────────────────────────────────── */
 .tc-skeletons {
   border: var(--tc-bw) solid var(--tc-border);
@@ -707,6 +755,71 @@ html.dark .result-card:hover { border-color: rgba(255,255,255,0.14) !important; 
 /* Dark misc */
 html.dark .bg-slate-800 { background-color: #141412 !important; }
 html.dark .bg-slate-900 { background-color: #0f0e0d !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLASS — Tailwind utility overrides (fixes StandupTab and other Tailwind-heavy tabs)
+   ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="glass"] .app-layout .bg-white {
+  background-color: rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(48px) saturate(1.8);
+  -webkit-backdrop-filter: blur(48px) saturate(1.8);
+}
+html[data-theme="glass"] .app-layout .bg-white\/60 { background-color: rgba(255,255,255,0.04) !important; }
+html[data-theme="glass"] .app-layout .bg-slate-50 { background-color: rgba(255,255,255,0.03) !important; }
+html[data-theme="glass"] .app-layout .bg-slate-50\/40 { background-color: rgba(255,255,255,0.02) !important; }
+html[data-theme="glass"] .app-layout .bg-slate-50\/60 { background-color: rgba(255,255,255,0.03) !important; }
+html[data-theme="glass"] .app-layout .bg-slate-100 { background-color: rgba(255,255,255,0.05) !important; }
+html[data-theme="glass"] .app-layout .bg-slate-800 { background-color: rgba(10,12,28,0.85) !important; }
+html[data-theme="glass"] .app-layout .bg-slate-900 { background-color: rgba(7,9,26,0.95) !important; }
+html[data-theme="glass"] .app-layout .border-slate-200\/70 { border-color: rgba(255,255,255,0.12) !important; }
+html[data-theme="glass"] .app-layout .border-slate-200\/80 { border-color: rgba(255,255,255,0.12) !important; }
+html[data-theme="glass"] .app-layout .border-slate-200 { border-color: rgba(255,255,255,0.10) !important; }
+html[data-theme="glass"] .app-layout .border-slate-100 { border-color: rgba(255,255,255,0.07) !important; }
+html[data-theme="glass"] .app-layout .divide-slate-100 > * + * { border-color: rgba(255,255,255,0.06) !important; }
+html[data-theme="glass"] .app-layout .text-slate-900 { color: #eef0ff !important; }
+html[data-theme="glass"] .app-layout .text-slate-800 { color: #eef0ff !important; }
+html[data-theme="glass"] .app-layout .text-slate-700 { color: rgba(238,240,255,0.85) !important; }
+html[data-theme="glass"] .app-layout .text-slate-600 { color: rgba(238,240,255,0.65) !important; }
+html[data-theme="glass"] .app-layout .text-slate-500 { color: rgba(238,240,255,0.45) !important; }
+html[data-theme="glass"] .app-layout .text-slate-400 { color: rgba(238,240,255,0.35) !important; }
+html[data-theme="glass"] .app-layout .text-slate-300 { color: rgba(238,240,255,0.25) !important; }
+html[data-theme="glass"] .app-layout input:not(.tc-input),
+html[data-theme="glass"] .app-layout select {
+  background-color: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #eef0ff !important;
+}
+html[data-theme="glass"] .app-layout input:not(.tc-input)::placeholder { color: rgba(238,240,255,0.3) !important; }
+html[data-theme="glass"] .app-layout input:not(.tc-input):focus,
+html[data-theme="glass"] .app-layout select:focus {
+  border-color: rgba(99,102,241,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important;
+}
+html[data-theme="glass"] .app-layout .bg-indigo-50 { background-color: rgba(99,102,241,0.12) !important; }
+html[data-theme="glass"] .app-layout .text-indigo-600 { color: #818cf8 !important; }
+html[data-theme="glass"] .app-layout .text-indigo-700 { color: #a5b4fc !important; }
+html[data-theme="glass"] .app-layout .border-indigo-200 { border-color: rgba(99,102,241,0.25) !important; }
+html[data-theme="glass"] .app-layout .bg-violet-50 { background-color: rgba(124,58,237,0.12) !important; }
+html[data-theme="glass"] .app-layout .text-violet-600 { color: #a78bfa !important; }
+html[data-theme="glass"] .app-layout .text-violet-700 { color: #c4b5fd !important; }
+html[data-theme="glass"] .app-layout .border-violet-200 { border-color: rgba(124,58,237,0.25) !important; }
+html[data-theme="glass"] .app-layout [class*="from-indigo"][class*="to-violet"] {
+  background: rgba(99,102,241,0.85) !important;
+  box-shadow: 0 4px 24px rgba(99,102,241,0.45) !important;
+}
+html[data-theme="glass"] .app-layout .bg-emerald-50 { background-color: rgba(16,185,129,0.12) !important; }
+html[data-theme="glass"] .app-layout .text-emerald-700 { color: #6ee7b7 !important; }
+html[data-theme="glass"] .app-layout .border-emerald-200 { border-color: rgba(16,185,129,0.25) !important; }
+html[data-theme="glass"] .app-layout .bg-red-50 { background-color: rgba(239,68,68,0.1) !important; }
+html[data-theme="glass"] .app-layout .text-red-500 { color: #fca5a5 !important; }
+html[data-theme="glass"] .app-layout .border-red-200 { border-color: rgba(239,68,68,0.25) !important; }
+html[data-theme="glass"] .app-layout .bg-green-50 { background-color: rgba(34,197,94,0.1) !important; }
+html[data-theme="glass"] .app-layout .text-green-700 { color: #86efac !important; }
+html[data-theme="glass"] .app-layout .border-green-200 { border-color: rgba(34,197,94,0.25) !important; }
+html[data-theme="glass"] .app-layout .bg-indigo-600 { background-color: rgba(99,102,241,0.85) !important; color: #fff !important; }
+html[data-theme="glass"] .app-layout .hover\:bg-indigo-700:hover { background-color: rgba(79,70,229,0.9) !important; }
+html[data-theme="glass"] .app-layout .hover\:bg-slate-50:hover { background-color: rgba(255,255,255,0.06) !important; }
+html[data-theme="glass"] .app-layout .hover\:bg-indigo-50:hover { background-color: rgba(99,102,241,0.08) !important; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LIQUID BLOBS  (glass theme background)

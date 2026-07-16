@@ -22,7 +22,7 @@ function ChipRow({ label, options, value, onChange }: { label: string; options: 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         {options.map(o => (
           <button key={o} onClick={() => onChange(o === value ? '' : o)}
-            className={`tc-chip${value === o ? ' tc-chip-active' : ''}`}>
+            className={`tc-chip${value === o ? ' tc-active' : ''}`}>
             {o}
           </button>
         ))}

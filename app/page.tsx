@@ -16,9 +16,10 @@ import EmailSubjectTab    from './components/EmailSubjectTab';
 import EmailWriterTab     from './components/EmailWriterTab';
 import PromptEnhancerTab  from './components/PromptEnhancerTab';
 import AgentGeneratorTab  from './components/AgentGeneratorTab';
+import WordSuggestTab     from './components/WordSuggestTab';
 import OfflineGame        from './components/OfflineGame';
 
-type Tab = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject' | 'emailwriter' | 'promptenhancer' | 'agentgenerator';
+type Tab = 'rephrase' | 'quickreply' | 'analyzer' | 'polish' | 'standup' | 'chatanalyzer' | 'giftmessage' | 'occasionmessage' | 'emailsubject' | 'emailwriter' | 'promptenhancer' | 'agentgenerator' | 'wordsuggest';
 
 const TABS: { id: Tab; label: string; d: string }[] = [
   { id: 'rephrase',        label: 'Rephrase',       d: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
@@ -33,6 +34,7 @@ const TABS: { id: Tab; label: string; d: string }[] = [
   { id: 'emailwriter',     label: 'Email Writer',   d: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
   { id: 'promptenhancer',  label: 'Prompt Boost',   d: 'M13 10V3L4 14h7v7l9-11h-7z' },
   { id: 'agentgenerator',  label: 'Agent Builder',  d: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+  { id: 'wordsuggest',     label: 'Word Finder',    d: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7' },
 ];
 
 const TYPE_LABELS: Record<string, string> = {
@@ -41,6 +43,7 @@ const TYPE_LABELS: Record<string, string> = {
   giftmessage: 'Gift Message', occasionmessage: 'Occasions',
   emailsubject: 'Email Subject', emailwriter: 'Email Writer',
   promptenhancer: 'Prompt Boost', agentgenerator: 'Agent Builder',
+  wordsuggest: 'Word Finder',
 };
 
 const TAB_ID_MAP: Record<string, Tab> = {
@@ -49,6 +52,7 @@ const TAB_ID_MAP: Record<string, Tab> = {
   giftmessage: 'giftmessage', occasionmessage: 'occasionmessage',
   emailsubject: 'emailsubject', emailwriter: 'emailwriter',
   promptenhancer: 'promptenhancer', agentgenerator: 'agentgenerator',
+  wordsuggest: 'wordsuggest',
 };
 
 const ACCENT_PRESETS = ['#6366f1', '#f5c518', '#ff3b30', '#00c853', '#ff6b00', '#ffffff'];
@@ -448,6 +452,7 @@ export default function Home() {
             {activeTab === 'emailwriter'     && <EmailWriterTab     loadSession={loadedSession?.type === 'emailwriter'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'promptenhancer'  && <PromptEnhancerTab />}
             {activeTab === 'agentgenerator'  && <AgentGeneratorTab />}
+            {activeTab === 'wordsuggest'     && <WordSuggestTab />}
           </div>
         </main>
       </div>

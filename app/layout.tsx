@@ -13,9 +13,68 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://conveybot.in";
+const DESCRIPTION =
+  "Convey is a free AI writing assistant that rephrases, polishes, and perfects your tone for emails, chats, and messages — instant rewrites, quick replies, and tone checks.";
+
 export const metadata: Metadata = {
-  title: "Convey",
-  description: "Write with the perfect tone — rephrase, polish, reply, and more.",
+  metadataBase: new URL(SITE_URL),
+  applicationName: "Convey",
+  title: {
+    default: "Convey — AI Tone & Writing Assistant",
+    template: "%s | Convey",
+  },
+  description: DESCRIPTION,
+  keywords: [
+    "Convey",
+    "conveybot",
+    "AI writing assistant",
+    "tone checker",
+    "rephrase tool",
+    "AI email writer",
+    "quick reply generator",
+    "chat tone analyzer",
+    "message rewriter",
+    "polish text AI",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Convey — AI Tone & Writing Assistant",
+    description: DESCRIPTION,
+    url: "/",
+    siteName: "Convey",
+    images: ["/opengraph-image"],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Convey — AI Tone & Writing Assistant",
+    description: DESCRIPTION,
+    images: ["/opengraph-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Convey",
+  url: SITE_URL,
+  description: DESCRIPTION,
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Any",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
 export default function RootLayout({
@@ -28,7 +87,13 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden antialiased`}
     >
-      <body className="h-full overflow-hidden"><Providers>{children}</Providers></body>
+      <body className="h-full overflow-hidden">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
