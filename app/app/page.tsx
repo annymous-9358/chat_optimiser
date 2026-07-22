@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, Suspense } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, type OAuthProvider } from '../context/AuthContext';
@@ -401,16 +401,14 @@ function AppWorkspace() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { theme, accent, setTheme, setAccent }  = useTheme();
   const searchParams = useSearchParams();
-  const [activeTab,     setActiveTab]     = useState<Tab>('rephrase');
+  const [activeTab,     setActiveTab]     = useState<Tab>(() => {
+    const slug = searchParams.get('tool');
+    return (slug && SLUG_TO_TAB[slug]) ? SLUG_TO_TAB[slug] : 'rephrase';
+  });
   const [loadedSession, setLoadedSession] = useState<HistoryEntry | null>(null);
   const [mobileOpen,    setMobileOpen]    = useState(false);
 
   const { entries, loading: histLoading, clearAll } = useHistory();
-
-  useEffect(() => {
-    const slug = searchParams.get('tool');
-    if (slug && SLUG_TO_TAB[slug]) setActiveTab(SLUG_TO_TAB[slug]);
-  }, [searchParams]);
 
   const handleLoadSession = useCallback((entry: HistoryEntry) => {
     setLoadedSession(entry);
