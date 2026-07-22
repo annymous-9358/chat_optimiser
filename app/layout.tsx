@@ -38,6 +38,9 @@ export const metadata: Metadata = {
     "polish text AI",
   ],
   alternates: { canonical: "/" },
+  verification: {
+    google: "8EK-PPfu4xxAEJHornOcU_c7rnN4Q1ZokSfLVgxOQX8",
+  },
   openGraph: {
     title: "Convey — AI Tone & Writing Assistant",
     description: DESCRIPTION,
@@ -85,9 +88,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full overflow-hidden antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="h-full overflow-hidden">
+      <body className="h-full">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
