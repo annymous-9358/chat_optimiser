@@ -21,8 +21,8 @@ export default function ToolsIndexPage() {
     <div style={{ minHeight: "100vh", background: "#fafaf9", color: "#1c1917" }}>
       <header style={{ borderBottom: "1px solid #e7e5e0", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: 11 }}>C</div>
-          <span style={{ fontSize: 14, fontWeight: 800, color: "#1c1917" }}>Convey</span>
+          <div style={{ width: 28, height: 28, background: "#18181b", border: "1px solid #e7e5e0", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 900, fontSize: 9, fontFamily: "var(--font-geist-mono), monospace", letterSpacing: "-.2px", flexShrink: 0 }}>CO</div>
+          <span style={{ fontSize: 14, fontWeight: 900, color: "#1c1917", fontFamily: "var(--font-geist-mono), monospace", letterSpacing: "-.2px" }}>Convey</span>
         </Link>
         <Link href="/app" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: "#18181b", padding: "8px 16px", borderRadius: 8, textDecoration: "none" }}>Sign in</Link>
       </header>
@@ -30,7 +30,7 @@ export default function ToolsIndexPage() {
       <main style={{ maxWidth: 960, margin: "0 auto", padding: "56px 24px 80px" }}>
         <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-.02em", marginBottom: 8 }}>All tools</h1>
         <p style={{ fontSize: 15, color: "#78716c", marginBottom: 40, maxWidth: 560 }}>
-          13 focused AI writing tools, each with its own page. Pick one below or sign in to use them all from one workspace.
+          16 focused AI writing tools, each with its own page. Pick one below or sign in to use them all from one workspace.
         </p>
 
         {CATEGORY_ORDER.map((category) => {

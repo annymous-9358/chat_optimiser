@@ -10,7 +10,7 @@ function Icon({ d, size = 20 }: { d: string; size?: number }) {
 }
 
 const STEPS = [
-  { title: "Pick a tool", body: "Rephrase a message, check its tone, write an email, or one of 13 focused writing tools." },
+  { title: "Pick a tool", body: "Rephrase a message, check its tone, write an email, or one of 16 focused writing tools." },
   { title: "Add your text", body: "Paste what you're working with — a draft, a message you received, or a rough idea." },
   { title: "Get results instantly", body: "AI-generated, tone-matched output ready to copy and send in seconds." },
 ];
@@ -34,8 +34,8 @@ export default function HomePage() {
 
       <header style={{ borderBottom: "1px solid #e7e5e0", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(250,250,249,0.85)", backdropFilter: "blur(8px)", zIndex: 10 }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: 11 }}>C</div>
-          <span style={{ fontSize: 14, fontWeight: 800, color: "#1c1917" }}>Convey</span>
+          <div style={{ width: 28, height: 28, background: "#18181b", border: "1px solid #e7e5e0", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 900, fontSize: 9, fontFamily: "var(--font-geist-mono), monospace", letterSpacing: "-.2px", flexShrink: 0 }}>CO</div>
+          <span style={{ fontSize: 14, fontWeight: 900, color: "#1c1917", fontFamily: "var(--font-geist-mono), monospace", letterSpacing: "-.2px" }}>Convey</span>
         </Link>
         <nav style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <Link href="/tools" style={{ fontSize: 13, color: "#57534e", textDecoration: "none" }}>All tools</Link>
@@ -46,7 +46,7 @@ export default function HomePage() {
       {/* Hero */}
       <section style={{ maxWidth: 780, margin: "0 auto", padding: "96px 24px 64px", textAlign: "center" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: "#6366f1", background: "#f0efff", padding: "6px 14px", borderRadius: 999, marginBottom: 24 }}>
-          13 free AI writing tools, one workspace
+          16 free AI writing tools, one workspace
         </div>
         <h1 style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-.03em", lineHeight: 1.1, margin: "0 0 20px" }}>
           Write with the <span style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>perfect tone</span>, every time
@@ -64,13 +64,54 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* App preview — the actual workspace UI, not just an illustration */}
+      <section style={{ maxWidth: 900, margin: "0 auto 72px", padding: "0 24px" }}>
+        <div style={{ borderRadius: 16, border: "1px solid #e7e5e0", overflow: "hidden", boxShadow: "0 24px 64px -24px rgba(0,0,0,0.18)", background: "#fff" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderBottom: "1px solid #e7e5e0", background: "#fafaf9" }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#e7e5e0" }} />
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#e7e5e0" }} />
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#e7e5e0" }} />
+            <span style={{ marginLeft: 10, fontSize: 11, color: "#a8a29e", fontFamily: "var(--font-geist-mono), monospace" }}>conveybot.in/app/rephrase</span>
+          </div>
+          <div style={{ display: "flex", minHeight: 320, overflowX: "auto" }}>
+            <div style={{ width: 160, borderRight: "1px solid #e7e5e0", padding: "14px 0", flexShrink: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#a8a29e", padding: "0 14px 6px", fontFamily: "var(--font-geist-mono), monospace" }}>Rewrite &amp; Tone</div>
+              {["Rephrase", "Tone Check", "Polish"].map((label, i) => (
+                <div key={label} style={{ padding: "6px 14px", fontSize: 11, fontWeight: i === 0 ? 700 : 500, background: i === 0 ? "#18181b" : "transparent", color: i === 0 ? "#fff" : "#57534e", fontFamily: "var(--font-geist-mono), monospace", textTransform: "uppercase", letterSpacing: ".03em" }}>
+                  {label}
+                </div>
+              ))}
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#a8a29e", padding: "12px 14px 6px", fontFamily: "var(--font-geist-mono), monospace" }}>Language</div>
+              <div style={{ padding: "6px 14px", fontSize: 11, color: "#57534e", fontFamily: "var(--font-geist-mono), monospace", textTransform: "uppercase", letterSpacing: ".03em" }}>Translator</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 300, padding: 24, textAlign: "left" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 4, color: "#1c1917" }}>Rephrase</div>
+              <div style={{ fontSize: 12, color: "#78716c", marginBottom: 16 }}>Rewrite any message in the tone that fits.</div>
+              <div style={{ border: "1px solid #e7e5e0", borderRadius: 8, padding: 12, fontSize: 12, color: "#57534e", marginBottom: 12 }}>
+                can we push the meeting to thursday, something came up
+              </div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+                {["Pro Formal", "Casual", "Friend"].map((t, i) => (
+                  <span key={t} style={{ fontSize: 10, padding: "4px 10px", borderRadius: 6, border: `1px solid ${i === 0 ? "#18181b" : "#e7e5e0"}`, background: i === 0 ? "#18181b" : "#fff", color: i === 0 ? "#fff" : "#57534e", fontFamily: "var(--font-geist-mono), monospace" }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+              <div style={{ border: "1px solid #e7e5e0", borderRadius: 8, padding: 12, fontSize: 12, color: "#1c1917", lineHeight: 1.6 }}>
+                Hi — something&apos;s come up on my end, would it be possible to push our meeting to Thursday instead?
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Tool grid */}
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 24px 80px" }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.02em", textAlign: "center", marginBottom: 8 }}>
           Every tool in Convey
         </h2>
         <p style={{ fontSize: 14, color: "#78716c", textAlign: "center", marginBottom: 40 }}>
-          13 tools, grouped by what you&apos;re trying to do.
+          16 tools, grouped by what you&apos;re trying to do.
         </p>
         {CATEGORY_ORDER.map((category) => {
           const tools = TOOLS.filter((t) => t.category === category);

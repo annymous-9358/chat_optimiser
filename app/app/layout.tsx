@@ -1,0 +1,502 @@
+'use client';
+
+import { useState, useCallback } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth, type OAuthProvider } from '../context/AuthContext';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import { useTheme, type ThemeMode } from '../context/ThemeContext';
+import OfflineGame from '../components/OfflineGame';
+import { TOOLS, CATEGORY_ORDER, TAB_LABELS, getToolByTab } from '../toolsData';
+import { SessionBridgeProvider, useSessionBridge } from './SessionBridge';
+import { DEFAULT_TOOL_SLUG } from './toolComponents';
+
+const ACCENT_PRESETS = ['#6366f1', '#f5c518', '#ff3b30', '#00c853', '#ff6b00', '#ffffff'];
+const THEME_LABELS: Record<ThemeMode, string> = { glass: 'G', dark: 'D', editorial: 'E', brutalist: 'B' };
+
+function timeAgo(ts: number): string {
+  const d = Date.now() - ts, m = Math.floor(d / 60000);
+  if (m < 1) return 'now';
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+
+function SvgIcon({ d, size = 13, color = 'currentColor' }: { d: string; size?: number; color?: string }) {
+  return (
+    <svg style={{ width: size, height: size, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke={color} strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d={d} />
+    </svg>
+  );
+}
+
+function Spin({ size = 14, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg style={{ width: size, height: size, animation: 'spin 1s linear infinite', flexShrink: 0 }} viewBox="0 0 24 24" fill="none">
+      <circle style={{ opacity: 0.2 }} cx="12" cy="12" r="10" stroke={color} strokeWidth="4" />
+      <path style={{ opacity: 0.8 }} fill={color} d="M4 12a8 8 0 018-8v8H4z" />
+    </svg>
+  );
+}
+
+// ── Auth page ─────────────────────────────────────────────────────────────────
+function AuthPage() {
+  const { signIn, signUp, signInWithOAuth } = useAuth();
+  const [mode,         setMode]         = useState<'signin' | 'signup'>('signin');
+  const [email,        setEmail]        = useState('');
+  const [password,     setPassword]     = useState('');
+  const [error,        setError]        = useState('');
+  const [info,         setInfo]         = useState('');
+  const [loading,      setLoading]      = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
+
+  const handleOAuth = async (provider: OAuthProvider) => {
+    setError(''); setOauthLoading(provider);
+    const { error } = await signInWithOAuth(provider);
+    if (error) { setError(error); setOauthLoading(null); }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(''); setLoading(true);
+    if (mode === 'signin') {
+      const { error } = await signIn(email, password);
+      if (error) setError(error);
+    } else {
+      const { error } = await signUp(email, password);
+      if (error) setError(error);
+      else setInfo('Account created! Check your email to confirm, then sign in.');
+    }
+    setLoading(false);
+  };
+
+  const inp: React.CSSProperties = {
+    width: '100%', border: '1px solid #e7e5e0', borderRadius: 6,
+    background: '#ffffff', padding: '9px 12px', fontSize: 13, color: '#1c1917',
+    outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
+  };
+
+  if (info) return (
+    <div style={{ minHeight: '100vh', background: '#fafaf9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 320, textAlign: 'center' }}>
+        <div style={{ width: 36, height: 36, borderRadius: 8, background: '#18181b', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#fff' }}>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+        </div>
+        <h2 style={{ fontSize: 17, fontWeight: 600, color: '#1c1917', marginBottom: 6 }}>Check your email</h2>
+        <p style={{ fontSize: 13, color: '#78716c', lineHeight: 1.6 }}>{info}</p>
+        <button onClick={() => { setInfo(''); setMode('signin'); }} style={{ marginTop: 16, fontSize: 12, color: '#18181b', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          Back to sign in
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#fafaf9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 320 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 32, textDecoration: 'none' }}>
+          <div style={{ width: 28, height: 28, background: '#f5c518', border: '2px solid #000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000', fontWeight: 900, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0 }}>CO</div>
+          <span style={{ fontSize: 13, fontWeight: 900, color: '#1c1917', letterSpacing: '-.2px', fontFamily: 'var(--font-geist-mono), monospace', textTransform: 'uppercase' }}>Convey</span>
+        </Link>
+
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: '#1c1917', letterSpacing: '-.3px', marginBottom: 4 }}>
+          {mode === 'signin' ? 'Sign in' : 'Create account'}
+        </h1>
+        <p style={{ fontSize: 13, color: '#78716c', marginBottom: 28, lineHeight: 1.55 }}>
+          {mode === 'signin' ? 'Access your sessions and history.' : 'Create a free account to get started.'}
+        </p>
+
+        <button onClick={() => handleOAuth('google')} disabled={!!oauthLoading || loading}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: '9px 14px', borderRadius: 6, border: '1px solid #e7e5e0', fontSize: 13, fontWeight: 500, color: '#1c1917', background: '#ffffff', cursor: 'pointer', marginBottom: 20, fontFamily: 'inherit', opacity: (oauthLoading || loading) ? 0.6 : 1 }}>
+          {oauthLoading === 'google' ? <Spin size={14} /> : (
+            <svg viewBox="0 0 24 24" style={{ width: 15, height: 15 }}>
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+          )}
+          {oauthLoading === 'google' ? 'Redirecting…' : 'Continue with Google'}
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <div style={{ flex: 1, height: 1, background: '#e7e5e0' }} />
+          <span style={{ fontSize: 11, color: '#a8a29e' }}>or</span>
+          <div style={{ flex: 1, height: 1, background: '#e7e5e0' }} />
+        </div>
+
+        <div style={{ display: 'flex', borderBottom: '1px solid #e7e5e0', marginBottom: 20 }}>
+          {(['signin', 'signup'] as const).map(m => (
+            <button key={m} onClick={() => { setMode(m); setError(''); }}
+              style={{ paddingBottom: 10, paddingRight: 16, fontSize: 12, fontWeight: 500, background: 'none', border: 'none', borderBottom: `2px solid ${mode === m ? '#18181b' : 'transparent'}`, color: mode === m ? '#1c1917' : '#a8a29e', cursor: 'pointer', marginBottom: -1, fontFamily: 'inherit', transition: 'color .1s' }}>
+              {m === 'signin' ? 'Sign in' : 'Create account'}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#78716c', marginBottom: 5 }}>Email address</label>
+            <input type="email" required placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#78716c', marginBottom: 5 }}>Password</label>
+            <input type="password" required minLength={6} placeholder="Minimum 6 characters" value={password} onChange={e => setPassword(e.target.value)} style={inp} />
+          </div>
+          {error && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, borderRadius: 6, border: '1px solid #fecaca', background: '#fef2f2', padding: '9px 13px', fontSize: 12, color: '#b91c1c' }}>
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {error}
+            </div>
+          )}
+          <button type="submit" disabled={loading}
+            style={{ marginTop: 4, padding: '10px', borderRadius: 6, background: '#18181b', color: '#ffffff', fontWeight: 600, fontSize: 13, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1, fontFamily: 'inherit' }}>
+            {loading && <Spin size={14} color="#ffffff" />}
+            {loading ? (mode === 'signin' ? 'Signing in…' : 'Creating account…') : (mode === 'signin' ? 'Sign in' : 'Create account')}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+interface SidebarProps {
+  activeSlug:   string;
+  onNavigate:   (slug: string) => void;
+  theme:        ThemeMode;
+  accent:       string;
+  setTheme:     (t: ThemeMode) => void;
+  setAccent:    (a: string) => void;
+  email:        string;
+  signOut:      () => void;
+  entries:      HistoryEntry[];
+  histLoading:  boolean;
+  onLoadSession:(e: HistoryEntry) => void;
+  onClearAll:   () => void;
+  mobileOpen:   boolean;
+  setMobileOpen:(v: boolean) => void;
+}
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+function filterRecent(entries: HistoryEntry[]): HistoryEntry[] {
+  const now = Date.now();
+  return entries.filter(e => now - e.timestamp <= THIRTY_DAYS_MS);
+}
+
+function Sidebar({ activeSlug, onNavigate, theme, accent, setTheme, setAccent, email, signOut, entries, histLoading, onLoadSession, onClearAll, mobileOpen, setMobileOpen }: SidebarProps) {
+  const { deleteEntry, archivedEntries, archiveLoading, loadArchive, restoreEntry } = useHistory();
+  const [histOpen, setHistOpen] = useState(false);
+  const [archOpen, setArchOpen] = useState(false);
+  const [hovNav,   setHovNav]   = useState<string | null>(null);
+  const [hovHist,  setHovHist]  = useState<string | null>(null);
+  const [hovArch,  setHovArch]  = useState<string | null>(null);
+  const isBrut = theme === 'brutalist';
+  const mono   = 'var(--font-geist-mono), ui-monospace, monospace';
+
+  const recentEntries = filterRecent(entries);
+
+  const toggleArchive = () => {
+    setArchOpen(v => {
+      const next = !v;
+      if (next) loadArchive();
+      return next;
+    });
+  };
+
+  return (
+    <>
+      {mobileOpen && (
+        <div onClick={() => setMobileOpen(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 40 }}
+          className="mobile-backdrop" />
+      )}
+
+      <aside className={`tc-sidebar scrollbar-hide${mobileOpen ? ' sidebar-mobile-open' : ''}`}
+        style={{ width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden', zIndex: 50, fontFamily: mono }}>
+
+        {/* Logo */}
+        <div style={{ padding: '16px 14px 12px', borderBottom: `var(--tc-bw) solid var(--tc-border)`, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+              <div style={{ width: 28, height: 28, background: 'var(--tc-accent)', border: `var(--tc-bw) solid var(--tc-border)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-on)', fontWeight: 900, fontSize: 9, letterSpacing: '-.2px', flexShrink: 0, fontFamily: mono }}>CO</div>
+              <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', letterSpacing: isBrut ? '-.3px' : '-.2px', textTransform: isBrut ? 'uppercase' : 'none' }}>
+                Convey
+              </span>
+            </Link>
+            <button onClick={() => setMobileOpen(false)} className="mobile-only"
+              style={{ width: 24, height: 24, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--tc-muted)', display: 'none', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Nav — grouped by category, same grouping as the marketing /tools page */}
+        <div className="scrollbar-hide" style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+          {CATEGORY_ORDER.map(category => {
+            const tools = TOOLS.filter(t => t.category === category);
+            if (tools.length === 0) return null;
+            return (
+              <div key={category}>
+                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--tc-muted)', padding: '10px 16px 6px' }}>{category}</div>
+                {tools.map(tool => {
+                  const active  = activeSlug === tool.slug;
+                  const hovered = hovNav === tool.slug;
+                  return (
+                    <button key={tool.slug}
+                      onClick={() => { onNavigate(tool.slug); setMobileOpen(false); }}
+                      onMouseEnter={() => setHovNav(tool.slug)}
+                      onMouseLeave={() => setHovNav(null)}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '8px 16px', border: 'none',
+                        background: active ? 'var(--tc-accent)' : hovered ? 'var(--tc-hover)' : 'transparent',
+                        color: active ? 'var(--tc-on)' : 'var(--tc-sec)',
+                        cursor: 'pointer', textAlign: 'left',
+                        fontSize: 11, fontWeight: active ? 700 : 500,
+                        fontFamily: mono, letterSpacing: '.03em', textTransform: 'uppercase',
+                        borderLeft: active && isBrut ? '4px solid var(--tc-border)' : '4px solid transparent',
+                        transition: 'background .08s',
+                      }}>
+                      <SvgIcon d={tool.icon} size={13} color={active ? 'var(--tc-on)' : 'var(--tc-sec)'} />
+                      {tool.label}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+
+          {/* Workspace / History */}
+          <div style={{ marginTop: 16, borderTop: `var(--tc-bw) solid var(--tc-border)`, paddingTop: 12 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--tc-muted)', padding: '2px 16px 8px' }}>Workspace</div>
+            <button onClick={() => setHistOpen(v => !v)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', border: 'none', background: 'transparent', color: 'var(--tc-sec)', cursor: 'pointer', fontSize: 11, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.03em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <SvgIcon d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" color="var(--tc-sec)" />
+                History
+              </div>
+              <span style={{ fontSize: 10, color: 'var(--tc-muted)', fontWeight: 700 }}>{histOpen ? '▲' : '▼'}</span>
+            </button>
+
+            {histOpen && (
+              <div>
+                {histLoading && (
+                  <div style={{ padding: '8px 16px 4px 40px' }}><Spin size={12} color="var(--tc-muted)" /></div>
+                )}
+                {!histLoading && recentEntries.length === 0 && (
+                  <p style={{ fontSize: 10, color: 'var(--tc-muted)', padding: '4px 16px 4px 40px', margin: 0, fontFamily: mono }}>No history in the last 30 days</p>
+                )}
+                {recentEntries.map(h => (
+                  <div key={h.id}
+                    onClick={() => onLoadSession(h)}
+                    onMouseEnter={() => setHovHist(h.id)}
+                    onMouseLeave={() => setHovHist(null)}
+                    style={{
+                      padding: '7px 16px 7px 40px', cursor: 'pointer', position: 'relative',
+                      background: hovHist === h.id ? 'var(--tc-hover)' : 'transparent',
+                      borderLeft: hovHist === h.id && isBrut ? '4px solid var(--tc-accent)' : '4px solid transparent',
+                      transition: 'background .08s',
+                    }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4, marginBottom: 2 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tc-text)', fontFamily: mono, letterSpacing: '.04em' }}>{TAB_LABELS[h.type] ?? h.type}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 9, color: 'var(--tc-muted)', fontFamily: mono }}>{timeAgo(h.timestamp)}</span>
+                        {hovHist === h.id && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteEntry(h.id); }}
+                            title="Archive this entry"
+                            style={{ width: 14, height: 14, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--tc-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>
+                            <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 10, color: 'var(--tc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, fontFamily: mono }}>{h.preview}</p>
+                  </div>
+                ))}
+                {entries.length > 0 && (
+                  <button onClick={onClearAll}
+                    style={{ width: '100%', textAlign: 'left', padding: '4px 16px 6px 40px', fontSize: 10, color: 'var(--tc-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                    Archive all
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Archive — everything archived from History, with restore */}
+            <button onClick={toggleArchive}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', border: 'none', background: 'transparent', color: 'var(--tc-sec)', cursor: 'pointer', fontSize: 11, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.03em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <SvgIcon d="M5 8h14M5 8a2 2 0 01-2-2V5a1 1 0 011-1h16a1 1 0 011 1v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8M10 12h4" color="var(--tc-sec)" />
+                Archive
+              </div>
+              <span style={{ fontSize: 10, color: 'var(--tc-muted)', fontWeight: 700 }}>{archOpen ? '▲' : '▼'}</span>
+            </button>
+
+            {archOpen && (
+              <div>
+                {archiveLoading && (
+                  <div style={{ padding: '8px 16px 4px 40px' }}><Spin size={12} color="var(--tc-muted)" /></div>
+                )}
+                {!archiveLoading && archivedEntries.length === 0 && (
+                  <p style={{ fontSize: 10, color: 'var(--tc-muted)', padding: '4px 16px 4px 40px', margin: 0, fontFamily: mono }}>Archive is empty</p>
+                )}
+                {archivedEntries.map(a => (
+                  <div key={a.id}
+                    onMouseEnter={() => setHovArch(a.id)}
+                    onMouseLeave={() => setHovArch(null)}
+                    style={{
+                      padding: '7px 16px 7px 40px',
+                      background: hovArch === a.id ? 'var(--tc-hover)' : 'transparent',
+                      transition: 'background .08s',
+                    }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4, marginBottom: 2 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tc-text)', fontFamily: mono, letterSpacing: '.04em' }}>{TAB_LABELS[a.type] ?? a.type}</span>
+                      <span style={{ fontSize: 9, color: 'var(--tc-muted)', fontFamily: mono }}>{timeAgo(a.deletedAt)}</span>
+                    </div>
+                    <p style={{ fontSize: 10, color: 'var(--tc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: '0 0 3px' }}>{a.preview}</p>
+                    <button onClick={() => restoreEntry(a.id)}
+                      style={{ fontSize: 9, fontWeight: 700, color: 'var(--tc-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                      Restore
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer — theme selector + accent + sign out */}
+        <div style={{ borderTop: `var(--tc-bw) solid var(--tc-border)`, padding: '10px 14px', flexShrink: 0 }}>
+          <div style={{ fontSize: 10, color: 'var(--tc-muted)', fontFamily: mono, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 8 }}>{email}</div>
+
+          {/* Theme selector */}
+          <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
+            {(['glass', 'dark', 'editorial', 'brutalist'] as ThemeMode[]).map(th => (
+              <button key={th} onClick={() => setTheme(th)}
+                style={{
+                  flex: 1, padding: '5px 2px', fontSize: 9, fontWeight: 700,
+                  letterSpacing: '.06em', textTransform: 'uppercase',
+                  border: `var(--tc-bw) solid ${theme === th ? 'var(--tc-border)' : 'transparent'}`,
+                  background: theme === th ? 'var(--tc-chip)' : 'transparent',
+                  color: theme === th ? 'var(--tc-text)' : 'var(--tc-muted)',
+                  cursor: 'pointer', fontFamily: mono, borderRadius: 'var(--tc-r)',
+                }}>
+                {THEME_LABELS[th]}
+              </button>
+            ))}
+          </div>
+
+          {/* Accent color dots + sign out */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {ACCENT_PRESETS.map(a => (
+              <button key={a} onClick={() => setAccent(a)}
+                style={{
+                  width: 14, height: 14, borderRadius: '50%', background: a, cursor: 'pointer',
+                  border: accent === a ? '2px solid var(--tc-text)' : `1px solid var(--tc-border)`,
+                  padding: 0, flexShrink: 0,
+                }} />
+            ))}
+            <button onClick={signOut}
+              style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--tc-muted)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              Sign out
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+// ── Shell ─────────────────────────────────────────────────────────────────────
+function AppShell({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { theme, accent, setTheme, setAccent }  = useTheme();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { entries, loading: histLoading, clearAll } = useHistory();
+  const { loadSession } = useSessionBridge();
+
+  const activeSlug = pathname.split('/')[2] ?? DEFAULT_TOOL_SLUG;
+
+  const handleNavigate = useCallback((slug: string) => {
+    router.push(`/app/${slug}`);
+  }, [router]);
+
+  const handleLoadSession = useCallback((entry: HistoryEntry) => {
+    loadSession(entry);
+    const slug = getToolByTab(entry.type)?.slug ?? DEFAULT_TOOL_SLUG;
+    router.push(`/app/${slug}`);
+  }, [loadSession, router]);
+
+  if (authLoading) return (
+    <div style={{ minHeight: '100vh', background: 'var(--tc-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--tc-muted)' }}>
+        <Spin size={16} /><span style={{ fontSize: 13 }}>Loading…</span>
+      </div>
+    </div>
+  );
+
+  if (!user) return <AuthPage />;
+
+  return (
+    <>
+      {/* Mobile-only hamburger strip */}
+      <div className="mobile-topbar">
+        <button onClick={() => setMobileOpen(true)}
+          style={{ width: 32, height: 32, border: `var(--tc-bw) solid var(--tc-border)`, borderRadius: 'var(--tc-r)', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-muted)', flexShrink: 0 }}>
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 22, height: 22, background: 'var(--tc-accent)', border: `var(--tc-bw) solid var(--tc-border)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--tc-on)', fontWeight: 900, fontSize: 8 }}>CO</div>
+          <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--tc-text)', fontFamily: 'var(--font-geist-mono), monospace' }}>Convey</span>
+        </div>
+      </div>
+
+      <div className="app-layout">
+        {theme === 'glass' && (
+          <div className="tc-blobs" aria-hidden>
+            <span className="b1" /><span className="b2" /><span className="b3" />
+          </div>
+        )}
+        <Sidebar
+          activeSlug={activeSlug}
+          onNavigate={handleNavigate}
+          theme={theme}
+          accent={accent}
+          setTheme={setTheme}
+          setAccent={setAccent}
+          email={user.email ?? ''}
+          signOut={signOut}
+          entries={entries}
+          histLoading={histLoading}
+          onLoadSession={handleLoadSession}
+          onClearAll={clearAll}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+        />
+
+        <main className="scrollbar-hide app-main" style={{ flex: 1, overflowY: 'auto', minWidth: 0 }}>
+          <div key={activeSlug} className="fade-in-up">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      <OfflineGame />
+    </>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SessionBridgeProvider>
+      <AppShell>{children}</AppShell>
+    </SessionBridgeProvider>
+  );
+}

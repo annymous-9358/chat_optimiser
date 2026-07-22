@@ -24,6 +24,7 @@ export const CATEGORY_ORDER = [
   "Email",
   "Occasions & Gifts",
   "Work & Productivity",
+  "Language",
   "AI & Prompts",
 ];
 
@@ -314,8 +315,82 @@ export const TOOLS: ToolMeta[] = [
       { q: "What if I don't know the exact category?", a: "Category selection is optional — you can just describe what you're trying to say and Convey figures out the best matches." },
     ],
   },
+  {
+    slug: "translate",
+    category: "Language",
+    tab: "translate",
+    label: "Translator",
+    tagline: "Translate anything, without it sounding translated",
+    metaDescription: "Convey's Translator turns any text into a natural, fluent translation in 14+ languages — not a robotic word-for-word one — while preserving tone.",
+    description: "Paste text in any language and Convey auto-detects it, then translates into the language you pick — Spanish, Hindi, Japanese, Arabic, and more. Choose an optional formality register (Neutral, Formal, Casual) so the translation fits the moment, not just the words.",
+    icon: "M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m6.334-12.138a24.987 24.987 0 015.984 2.174m-5.984-2.174C8.996 8.6 6.716 11.336 4.65 14.196m11.15-2.51C17.925 13.412 19.398 15.31 20.5 17.5",
+    keywords: ["AI translator", "translate text online free", "natural language translator", "translate to Hindi", "fluent translation tool", "formal translation AI", "language translator"],
+    bullets: [
+      "Translates into 14+ languages including Hindi, Tamil, Marathi, Arabic, Japanese",
+      "Auto-detects the source language — no need to specify it",
+      "Optional formality control: Neutral, Formal, or Casual",
+      "Fluent, natural phrasing instead of literal word-for-word translation",
+    ],
+    faq: [
+      { q: "Do I need to tell it what language the text is in?", a: "No, the source language is auto-detected — just paste the text and pick what you want it translated to." },
+      { q: "Can I control how formal the translation sounds?", a: "Yes, pick Neutral, Formal, or Casual and the translation's register adjusts accordingly." },
+      { q: "How is this different from a literal translator?", a: "Convey aims for how a fluent speaker would actually phrase it, preserving tone and meaning rather than translating word-for-word." },
+    ],
+  },
+  {
+    slug: "summarize",
+    category: "Work & Productivity",
+    tab: "summarize",
+    label: "Summarizer",
+    tagline: "Long text in, the point out — in seconds",
+    metaDescription: "Convey's Summarizer turns long articles, email threads, or documents into a concise summary with key points and a one-line TL;DR.",
+    description: "Paste any long text — an article, email thread, meeting transcript, or document — and get back a faithful summary at the length and format you choose, plus a one-sentence TL;DR and a list of standalone key points. Built for anyone drowning in long text who needs the point, fast.",
+    icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z",
+    keywords: ["AI text summarizer", "summarize article online", "summarize email thread", "TLDR generator", "document summary tool", "summarize long text free", "key points extractor"],
+    bullets: [
+      "Summarizes articles, email threads, transcripts, or any long text",
+      "Choose length: Short, Medium, or Detailed",
+      "Choose format: bullet points or flowing paragraph",
+      "Always includes a one-sentence TL;DR and standalone key points",
+    ],
+    faq: [
+      { q: "How long can the text I paste in be?", a: "Up to 8,000 characters — enough for most articles, email threads, or meeting transcripts." },
+      { q: "Does it just shorten the text, or does it explain it?", a: "It produces a faithful summary that doesn't add facts not in the original, plus a separate list of key points and a one-line TL;DR." },
+      { q: "Can I get bullet points instead of a paragraph?", a: "Yes, choose the Bullets format, or Paragraph for flowing prose — your choice." },
+    ],
+  },
+  {
+    slug: "meeting-minutes",
+    category: "Work & Productivity",
+    tab: "meetingminutes",
+    label: "Meeting Minutes",
+    tagline: "Messy notes in, clean minutes and action items out",
+    metaDescription: "Convey's Meeting Minutes tool turns raw, messy meeting notes into structured minutes with decisions and action items, each with an owner and due date.",
+    description: "Paste your raw meeting notes or a rough transcript — typos and stream-of-consciousness are fine — and Convey organizes it into clean minutes: a summary, discussion points, decisions made, and action items with an owner and due date wherever one was mentioned. Copy the whole thing formatted and ready to paste into Slack or email.",
+    icon: "M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z",
+    keywords: ["meeting minutes generator", "AI meeting notes", "turn notes into minutes", "action items extractor", "meeting summary tool", "structured meeting notes AI", "meeting notes to action items"],
+    bullets: [
+      "Turns raw, messy notes into structured minutes — no cleanup needed first",
+      "Separates discussion points from actual decisions made",
+      "Extracts action items with owner and due date when mentioned",
+      "One click copies the full formatted minutes for Slack or email",
+    ],
+    faq: [
+      { q: "Do my notes need to be well-organized first?", a: "No, paste them as-is — typos and stream-of-consciousness notes work fine, Convey does the organizing." },
+      { q: "Will it make up owners or deadlines that weren't mentioned?", a: "No, action items only get an owner or due date if one was actually mentioned in your notes — otherwise those fields are left blank." },
+      { q: "Can I paste the result straight into Slack?", a: "Yes, the copy button formats the full minutes as clean plain text, not JSON, ready to paste anywhere." },
+    ],
+  },
 ];
+
+export const TAB_LABELS: Record<string, string> = Object.fromEntries(
+  TOOLS.map((t) => [t.tab, t.label]),
+);
 
 export function getTool(slug: string): ToolMeta | undefined {
   return TOOLS.find((t) => t.slug === slug);
+}
+
+export function getToolByTab(tab: string): ToolMeta | undefined {
+  return TOOLS.find((t) => t.tab === tab);
 }

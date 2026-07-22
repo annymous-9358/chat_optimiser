@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
   // Build the redirect response up front so we can attach cookies to it.
   // Redirect into the app workspace, not the public marketing home page.
-  const response = NextResponse.redirect(`${origin}/app`);
+  const response = NextResponse.redirect(`${origin}/app/rephrase`);
 
   if (code) {
     const supabase = createServerClient(

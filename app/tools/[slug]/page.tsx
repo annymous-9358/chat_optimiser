@@ -78,8 +78,8 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
       <header style={{ borderBottom: "1px solid #e7e5e0", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 900, fontSize: 11 }}>C</div>
-          <span style={{ fontSize: 14, fontWeight: 800, color: "#1c1917" }}>Convey</span>
+          <div style={{ width: 28, height: 28, background: "#18181b", border: "1px solid #e7e5e0", display: "flex", alignItems: "center", justifyContent: "center", color: "#ffffff", fontWeight: 900, fontSize: 9, fontFamily: "var(--font-geist-mono), monospace", letterSpacing: "-.2px", flexShrink: 0 }}>CO</div>
+          <span style={{ fontSize: 14, fontWeight: 900, color: "#1c1917", fontFamily: "var(--font-geist-mono), monospace", letterSpacing: "-.2px" }}>Convey</span>
         </Link>
         <nav style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <Link href="/tools" style={{ fontSize: 13, color: "#57534e", textDecoration: "none" }}>All tools</Link>
@@ -108,7 +108,7 @@ export default async function ToolPage({ params }: { params: Promise<{ slug: str
 
         <p style={{ fontSize: 16, lineHeight: 1.7, color: "#44403c", marginBottom: 28 }}>{tool.description}</p>
 
-        <Link href={`/app?tool=${tool.slug}`}
+        <Link href={`/app/${tool.slug}`}
           style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 700, color: "#fff", background: "#18181b", padding: "12px 22px", borderRadius: 10, textDecoration: "none", marginBottom: 48 }}>
           Try {tool.label} free →
         </Link>
