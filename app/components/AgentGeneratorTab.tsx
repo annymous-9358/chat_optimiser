@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 
 const PLATFORMS = ['Claude Code', 'Cursor', 'GitHub Copilot', 'VS Code', 'General / API'];
 const SPECIALIZATIONS = ['Code Review', 'Debugging', 'Documentation', 'Testing', 'Refactoring', 'Architecture', 'Full-Stack Dev', 'Data Analysis', 'Security Audit', 'Custom'];
@@ -31,7 +32,10 @@ function ChipRow({ label, options, value, onChange }: { label: string; options: 
   );
 }
 
-export default function AgentGeneratorTab() {
+type Props = { loadSession?: HistoryEntry | null; onSessionLoaded?: () => void; };
+
+export default function AgentGeneratorTab({ loadSession, onSessionLoaded }: Props) {
+  const { saveEntry } = useHistory();
   const [description,    setDescription]    = useState('');
   const [platform,       setPlatform]       = useState('Claude Code');
   const [specialization, setSpecialization] = useState('');
@@ -40,6 +44,17 @@ export default function AgentGeneratorTab() {
   const [loading,        setLoading]        = useState(false);
   const [error,          setError]          = useState('');
   const [copied,         setCopied]         = useState(false);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setDescription((d.description as string) ?? '');
+    setPlatform((d.platform as string) ?? 'Claude Code');
+    setSpecialization((d.specialization as string) ?? '');
+    setBehavior((d.behavior as string) ?? '');
+    setResult((d.result as { definition: string; filename: string; usage: string; capabilities: string[] }) ?? null);
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleGenerate = useCallback(async () => {
     if (!description.trim()) { setError('Describe what your agent should do.'); return; }
@@ -53,12 +68,17 @@ export default function AgentGeneratorTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data);
+      saveEntry({
+        type: 'agentgenerator', emoji: '', label: specialization || 'Agent Builder',
+        preview: description.slice(0, 60),
+        data: { description, platform, specialization, behavior, result: data },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [description, platform, specialization, behavior]);
+  }, [description, platform, specialization, behavior, saveEntry]);
 
   const handleCopy = () => {
     if (!result) return;

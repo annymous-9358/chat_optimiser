@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 
 const PURPOSES = ['Coding', 'Writing', 'Analysis', 'Research', 'Creative', 'Business', 'Learning', 'Data', 'Design', 'Other'];
 const PLATFORMS = ['Claude', 'ChatGPT / GPT-4', 'Gemini', 'Cursor', 'GitHub Copilot', 'General LLM'];
@@ -31,7 +32,10 @@ function ChipRow({ label, options, value, onChange }: { label: string; options: 
   );
 }
 
-export default function PromptEnhancerTab() {
+type Props = { loadSession?: HistoryEntry | null; onSessionLoaded?: () => void; };
+
+export default function PromptEnhancerTab({ loadSession, onSessionLoaded }: Props) {
+  const { saveEntry } = useHistory();
   const [prompt,    setPrompt]    = useState('');
   const [purpose,   setPurpose]   = useState('');
   const [platform,  setPlatform]  = useState('');
@@ -40,6 +44,17 @@ export default function PromptEnhancerTab() {
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const [copied,    setCopied]    = useState(false);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setPrompt((d.prompt as string) ?? '');
+    setPurpose((d.purpose as string) ?? '');
+    setPlatform((d.platform as string) ?? '');
+    setStyle((d.style as string) ?? '');
+    setResult((d.result as { enhanced: string; explanation: string; tips: string[] }) ?? null);
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleEnhance = useCallback(async () => {
     if (!prompt.trim()) { setError('Enter a prompt to enhance.'); return; }
@@ -53,12 +68,17 @@ export default function PromptEnhancerTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data);
+      saveEntry({
+        type: 'promptenhancer', emoji: '', label: purpose || 'Prompt Boost',
+        preview: prompt.slice(0, 60),
+        data: { prompt, purpose, platform, style, result: data },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [prompt, purpose, platform, style]);
+  }, [prompt, purpose, platform, style, saveEntry]);
 
   const handleCopy = () => {
     if (!result) return;

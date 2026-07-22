@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useHistory, HistoryEntry } from '../context/HistoryContext';
 
 const CATEGORIES = ['Feeling / Emotion', 'Person / Character', 'Place / Scene', 'Moment / Time', 'Action / Event', 'Object / Thing', 'Concept / Idea', 'Literary / Poetic'];
 const OUTPUT_LANGS = ['English', 'Hindi', 'Both'];
@@ -28,7 +29,10 @@ type ApiResult = {
   interpretation: string;
 };
 
-export default function WordSuggestTab() {
+type Props = { loadSession?: HistoryEntry | null; onSessionLoaded?: () => void; };
+
+export default function WordSuggestTab({ loadSession, onSessionLoaded }: Props) {
+  const { saveEntry } = useHistory();
   const [description, setDescription]   = useState('');
   const [category,    setCategory]      = useState('');
   const [outputLang,  setOutputLang]    = useState('English');
@@ -36,6 +40,16 @@ export default function WordSuggestTab() {
   const [loading,     setLoading]       = useState(false);
   const [error,       setError]         = useState('');
   const [copied,      setCopied]        = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loadSession) return;
+    const d = loadSession.data;
+    setDescription((d.description as string) ?? '');
+    setCategory((d.category as string) ?? '');
+    setOutputLang((d.outputLang as string) ?? 'English');
+    setResult((d.result as ApiResult) ?? null);
+    onSessionLoaded?.();
+  }, [loadSession, onSessionLoaded]);
 
   const handleFind = useCallback(async () => {
     if (!description.trim()) { setError('Describe what you are trying to say.'); return; }
@@ -49,12 +63,17 @@ export default function WordSuggestTab() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
       setResult(data);
+      saveEntry({
+        type: 'wordsuggest', emoji: '', label: category || 'Word Finder',
+        preview: description.slice(0, 60),
+        data: { description, category, outputLang, result: data },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, [description, category, outputLang]);
+  }, [description, category, outputLang, saveEntry]);
 
   const handleCopy = (word: string) => {
     navigator.clipboard.writeText(word);

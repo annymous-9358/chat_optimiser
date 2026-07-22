@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TOOLS } from "../toolsData";
+import { TOOLS, CATEGORY_ORDER } from "../toolsData";
 
 export const metadata: Metadata = {
   title: "All Tools",
@@ -33,18 +33,29 @@ export default function ToolsIndexPage() {
           13 focused AI writing tools, each with its own page. Pick one below or sign in to use them all from one workspace.
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
-          {TOOLS.map((t) => (
-            <Link key={t.slug} href={`/tools/${t.slug}`}
-              style={{ display: "block", padding: "20px", borderRadius: 14, border: "1px solid #e7e5e0", background: "#fff", textDecoration: "none" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", marginBottom: 14 }}>
-                <Icon d={t.icon} />
+        {CATEGORY_ORDER.map((category) => {
+          const tools = TOOLS.filter((t) => t.category === category);
+          if (tools.length === 0) return null;
+          return (
+            <section key={category} style={{ marginBottom: 40 }}>
+              <h2 style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "#a8a29e", marginBottom: 16 }}>
+                {category}
+              </h2>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+                {tools.map((t) => (
+                  <Link key={t.slug} href={`/tools/${t.slug}`}
+                    style={{ display: "block", padding: "20px", borderRadius: 14, border: "1px solid #e7e5e0", background: "#fff", textDecoration: "none" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", marginBottom: 14 }}>
+                      <Icon d={t.icon} />
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#1c1917", marginBottom: 4 }}>{t.label}</div>
+                    <div style={{ fontSize: 13, color: "#78716c", lineHeight: 1.5 }}>{t.tagline}</div>
+                  </Link>
+                ))}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#1c1917", marginBottom: 4 }}>{t.label}</div>
-              <div style={{ fontSize: 13, color: "#78716c", lineHeight: 1.5 }}>{t.tagline}</div>
-            </Link>
-          ))}
-        </div>
+            </section>
+          );
+        })}
       </main>
 
       <footer style={{ borderTop: "1px solid #e7e5e0", padding: "24px", textAlign: "center", fontSize: 12, color: "#a8a29e" }}>

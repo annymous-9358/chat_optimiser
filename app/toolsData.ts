@@ -7,6 +7,7 @@ export interface ToolMeta {
   slug: string;
   tab: string;
   label: string;
+  category: string;
   tagline: string;
   metaDescription: string;
   description: string;
@@ -16,9 +17,20 @@ export interface ToolMeta {
   faq: ToolFaq[];
 }
 
+// Display order for category sections on /tools and the home page.
+export const CATEGORY_ORDER = [
+  "Rewrite & Tone",
+  "Replies & Conversations",
+  "Email",
+  "Occasions & Gifts",
+  "Work & Productivity",
+  "AI & Prompts",
+];
+
 export const TOOLS: ToolMeta[] = [
   {
     slug: "rephrase",
+    category: "Rewrite & Tone",
     tab: "rephrase",
     label: "Rephrase",
     tagline: "Say it in the right tone, every time",
@@ -40,6 +52,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "quick-reply",
+    category: "Replies & Conversations",
     tab: "quickreply",
     label: "Quick Reply",
     tagline: "Never stare at a blank reply box again",
@@ -61,6 +74,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "tone-checker",
+    category: "Rewrite & Tone",
     tab: "analyzer",
     label: "Tone Check",
     tagline: "Know how your message actually lands",
@@ -82,6 +96,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "polish",
+    category: "Rewrite & Tone",
     tab: "polish",
     label: "Polish",
     tagline: "One click to shorten, fix, or sharpen any message",
@@ -103,6 +118,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "standup",
+    category: "Work & Productivity",
     tab: "standup",
     label: "Standup",
     tagline: "Turn yesterday's tasks into today's standup update",
@@ -124,6 +140,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "chat-insights",
+    category: "Replies & Conversations",
     tab: "chatanalyzer",
     label: "Chat Insights",
     tagline: "Understand your chat dynamics, or write the next message",
@@ -145,6 +162,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "occasions",
+    category: "Occasions & Gifts",
     tab: "occasionmessage",
     label: "Occasions",
     tagline: "The right words for any occasion, in seconds",
@@ -166,6 +184,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "gift-message",
+    category: "Occasions & Gifts",
     tab: "giftmessage",
     label: "Gift Message",
     tagline: "Never stare at a blank gift card again",
@@ -187,6 +206,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "email-subject",
+    category: "Email",
     tab: "emailsubject",
     label: "Email Subject",
     tagline: "Five subject lines, five different angles, one click",
@@ -208,6 +228,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "email-writer",
+    category: "Email",
     tab: "emailwriter",
     label: "Email Writer",
     tagline: "Describe your email, get subject and body written for you",
@@ -229,6 +250,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "prompt-boost",
+    category: "AI & Prompts",
     tab: "promptenhancer",
     label: "Prompt Boost",
     tagline: "Turn a rough prompt into one that actually works",
@@ -250,6 +272,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "agent-builder",
+    category: "AI & Prompts",
     tab: "agentgenerator",
     label: "Agent Builder",
     tagline: "Describe an AI agent, get a ready-to-use definition file",
@@ -271,6 +294,7 @@ export const TOOLS: ToolMeta[] = [
   },
   {
     slug: "word-finder",
+    category: "AI & Prompts",
     tab: "wordsuggest",
     label: "Word Finder",
     tagline: "Describe the feeling. Get the exact word.",

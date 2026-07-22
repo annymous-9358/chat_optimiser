@@ -243,12 +243,27 @@ interface SidebarProps {
   setMobileOpen:(v: boolean) => void;
 }
 
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
 function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, email, signOut, entries, histLoading, onLoadSession, onClearAll, mobileOpen, setMobileOpen }: SidebarProps) {
+  const { deleteEntry, archivedEntries, archiveLoading, loadArchive, restoreEntry } = useHistory();
   const [histOpen, setHistOpen] = useState(false);
+  const [archOpen, setArchOpen] = useState(false);
   const [hovNav,   setHovNav]   = useState<string | null>(null);
   const [hovHist,  setHovHist]  = useState<string | null>(null);
+  const [hovArch,  setHovArch]  = useState<string | null>(null);
   const isBrut = theme === 'brutalist';
   const mono   = 'var(--font-geist-mono), ui-monospace, monospace';
+
+  const recentEntries = entries.filter(e => Date.now() - e.timestamp <= THIRTY_DAYS_MS);
+
+  const toggleArchive = () => {
+    setArchOpen(v => {
+      const next = !v;
+      if (next) loadArchive();
+      return next;
+    });
+  };
 
   return (
     <>
@@ -322,23 +337,33 @@ function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, 
                 {histLoading && (
                   <div style={{ padding: '8px 16px 4px 40px' }}><Spin size={12} color="var(--tc-muted)" /></div>
                 )}
-                {!histLoading && entries.length === 0 && (
-                  <p style={{ fontSize: 10, color: 'var(--tc-muted)', padding: '4px 16px 4px 40px', margin: 0, fontFamily: mono }}>No history yet</p>
+                {!histLoading && recentEntries.length === 0 && (
+                  <p style={{ fontSize: 10, color: 'var(--tc-muted)', padding: '4px 16px 4px 40px', margin: 0, fontFamily: mono }}>No history in the last 30 days</p>
                 )}
-                {entries.slice(0, 15).map(h => (
+                {recentEntries.map(h => (
                   <div key={h.id}
                     onClick={() => onLoadSession(h)}
                     onMouseEnter={() => setHovHist(h.id)}
                     onMouseLeave={() => setHovHist(null)}
                     style={{
-                      padding: '7px 16px 7px 40px', cursor: 'pointer',
+                      padding: '7px 16px 7px 40px', cursor: 'pointer', position: 'relative',
                       background: hovHist === h.id ? 'var(--tc-hover)' : 'transparent',
                       borderLeft: hovHist === h.id && isBrut ? '4px solid var(--tc-accent)' : '4px solid transparent',
                       transition: 'background .08s',
                     }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4, marginBottom: 2 }}>
                       <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tc-text)', fontFamily: mono, letterSpacing: '.04em' }}>{TYPE_LABELS[h.type] ?? h.type}</span>
-                      <span style={{ fontSize: 9, color: 'var(--tc-muted)', fontFamily: mono }}>{timeAgo(h.timestamp)}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 9, color: 'var(--tc-muted)', fontFamily: mono }}>{timeAgo(h.timestamp)}</span>
+                        {hovHist === h.id && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); deleteEntry(h.id); }}
+                            title="Archive this entry"
+                            style={{ width: 14, height: 14, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--tc-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, flexShrink: 0 }}>
+                            <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p style={{ fontSize: 10, color: 'var(--tc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0, fontFamily: mono }}>{h.preview}</p>
                   </div>
@@ -349,6 +374,47 @@ function Sidebar({ activeTab, setActiveTab, theme, accent, setTheme, setAccent, 
                     Archive all
                   </button>
                 )}
+              </div>
+            )}
+
+            {/* Archive — everything archived from History, with restore */}
+            <button onClick={toggleArchive}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', border: 'none', background: 'transparent', color: 'var(--tc-sec)', cursor: 'pointer', fontSize: 11, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.03em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <SvgIcon d="M5 8h14M5 8a2 2 0 01-2-2V5a1 1 0 011-1h16a1 1 0 011 1v1a2 2 0 01-2 2M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8M10 12h4" color="var(--tc-sec)" />
+                Archive
+              </div>
+              <span style={{ fontSize: 10, color: 'var(--tc-muted)', fontWeight: 700 }}>{archOpen ? '▲' : '▼'}</span>
+            </button>
+
+            {archOpen && (
+              <div>
+                {archiveLoading && (
+                  <div style={{ padding: '8px 16px 4px 40px' }}><Spin size={12} color="var(--tc-muted)" /></div>
+                )}
+                {!archiveLoading && archivedEntries.length === 0 && (
+                  <p style={{ fontSize: 10, color: 'var(--tc-muted)', padding: '4px 16px 4px 40px', margin: 0, fontFamily: mono }}>Archive is empty</p>
+                )}
+                {archivedEntries.map(a => (
+                  <div key={a.id}
+                    onMouseEnter={() => setHovArch(a.id)}
+                    onMouseLeave={() => setHovArch(null)}
+                    style={{
+                      padding: '7px 16px 7px 40px',
+                      background: hovArch === a.id ? 'var(--tc-hover)' : 'transparent',
+                      transition: 'background .08s',
+                    }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4, marginBottom: 2 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tc-text)', fontFamily: mono, letterSpacing: '.04em' }}>{TYPE_LABELS[a.type] ?? a.type}</span>
+                      <span style={{ fontSize: 9, color: 'var(--tc-muted)', fontFamily: mono }}>{timeAgo(a.deletedAt)}</span>
+                    </div>
+                    <p style={{ fontSize: 10, color: 'var(--tc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: '0 0 3px' }}>{a.preview}</p>
+                    <button onClick={() => restoreEntry(a.id)}
+                      style={{ fontSize: 9, fontWeight: 700, color: 'var(--tc-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: mono, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                      Restore
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -474,9 +540,9 @@ function AppWorkspace() {
             {activeTab === 'giftmessage'     && <GiftMessageTab     loadSession={loadedSession?.type === 'giftmessage'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'emailsubject'    && <EmailSubjectTab    loadSession={loadedSession?.type === 'emailsubject'    ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
             {activeTab === 'emailwriter'     && <EmailWriterTab     loadSession={loadedSession?.type === 'emailwriter'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
-            {activeTab === 'promptenhancer'  && <PromptEnhancerTab />}
-            {activeTab === 'agentgenerator'  && <AgentGeneratorTab />}
-            {activeTab === 'wordsuggest'     && <WordSuggestTab />}
+            {activeTab === 'promptenhancer'  && <PromptEnhancerTab  loadSession={loadedSession?.type === 'promptenhancer'  ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'agentgenerator'  && <AgentGeneratorTab  loadSession={loadedSession?.type === 'agentgenerator'  ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
+            {activeTab === 'wordsuggest'     && <WordSuggestTab     loadSession={loadedSession?.type === 'wordsuggest'     ? loadedSession : null} onSessionLoaded={() => setLoadedSession(null)} />}
           </div>
         </main>
       </div>

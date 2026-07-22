@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TOOLS } from "./toolsData";
+import { TOOLS, CATEGORY_ORDER } from "./toolsData";
 
 function Icon({ d, size = 20 }: { d: string; size?: number }) {
   return (
@@ -66,21 +66,35 @@ export default function HomePage() {
 
       {/* Tool grid */}
       <section style={{ maxWidth: 1040, margin: "0 auto", padding: "40px 24px 80px" }}>
-        <h2 style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "#a8a29e", textAlign: "center", marginBottom: 28 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-.02em", textAlign: "center", marginBottom: 8 }}>
           Every tool in Convey
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-          {TOOLS.map((t) => (
-            <Link key={t.slug} href={`/tools/${t.slug}`}
-              style={{ display: "block", padding: "22px", borderRadius: 14, border: "1px solid #e7e5e0", background: "#fff", textDecoration: "none", transition: "border-color .15s" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", marginBottom: 14 }}>
-                <Icon d={t.icon} />
+        <p style={{ fontSize: 14, color: "#78716c", textAlign: "center", marginBottom: 40 }}>
+          13 tools, grouped by what you&apos;re trying to do.
+        </p>
+        {CATEGORY_ORDER.map((category) => {
+          const tools = TOOLS.filter((t) => t.category === category);
+          if (tools.length === 0) return null;
+          return (
+            <div key={category} style={{ marginBottom: 36 }}>
+              <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", color: "#a8a29e", marginBottom: 14 }}>
+                {category}
+              </h3>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+                {tools.map((t) => (
+                  <Link key={t.slug} href={`/tools/${t.slug}`}
+                    style={{ display: "block", padding: "22px", borderRadius: 14, border: "1px solid #e7e5e0", background: "#fff", textDecoration: "none", transition: "border-color .15s" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", marginBottom: 14 }}>
+                      <Icon d={t.icon} />
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#1c1917", marginBottom: 4 }}>{t.label}</div>
+                    <div style={{ fontSize: 13, color: "#78716c", lineHeight: 1.5 }}>{t.tagline}</div>
+                  </Link>
+                ))}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#1c1917", marginBottom: 4 }}>{t.label}</div>
-              <div style={{ fontSize: 13, color: "#78716c", lineHeight: 1.5 }}>{t.tagline}</div>
-            </Link>
-          ))}
-        </div>
+            </div>
+          );
+        })}
       </section>
 
       {/* How it works */}
