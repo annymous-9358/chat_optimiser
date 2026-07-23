@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const TONES = [
   { id: 'professional_formal',         label: 'Pro Formal' },
@@ -79,7 +82,10 @@ export default function RephraseTab({ loadSession, onSessionLoaded }: Props) {
       </div>
 
       <div>
-        <div className="tc-label">Message</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Message</div>
+          <VoiceInput onResult={(t) => setMessage(m => m ? m + ' ' + t : t)} disabled={loading} />
+        </div>
         <div style={{ position: 'relative' }}>
           <textarea
             className="tc-textarea"
@@ -147,11 +153,21 @@ export default function RephraseTab({ loadSession, onSessionLoaded }: Props) {
                   <div style={{ fontSize: 11, color: 'var(--tc-muted)', marginTop: 1 }}>{i + 1}</div>
                 </div>
                 <p style={{ flex: 1, fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0 }}>{s}</p>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(s); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
-                  className={`tc-copy${copied === i ? ' copied' : ''}`}>
-                  {copied === i ? 'Copied' : 'Copy'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <SpeakButton text={s} />
+                  <ShareButton text={s} title="Convey" />
+                  <button
+                    onClick={() => { setMessage(s); setSuggestions([]); }}
+                    title="Use this as the new input"
+                    style={{ fontSize: 11, padding: '5px 10px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', color: 'var(--tc-sec)', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                    Use as input
+                  </button>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(s); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
+                    className={`tc-copy${copied === i ? ' copied' : ''}`}>
+                    {copied === i ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

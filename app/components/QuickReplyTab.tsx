@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const RELATIONSHIPS = [
   { id: 'boss',      label: 'Boss' },
@@ -77,7 +80,10 @@ export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
       </div>
 
       <div>
-        <div className="tc-label">Message received</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Message received</div>
+          <VoiceInput onResult={(t) => setReceived(m => m ? m + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           className="tc-textarea"
           rows={4}
@@ -140,11 +146,15 @@ export default function QuickReplyTab({ loadSession, onSessionLoaded }: Props) {
                   <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--tc-muted)' }}>{APPROACH_LABELS[i]}</div>
                 </div>
                 <p style={{ flex: 1, fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0 }}>{r}</p>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(r); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
-                  className={`tc-copy${copied === i ? ' copied' : ''}`}>
-                  {copied === i ? 'Copied' : 'Copy'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <SpeakButton text={r} />
+                  <ShareButton text={r} title="Convey" />
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(r); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
+                    className={`tc-copy${copied === i ? ' copied' : ''}`}>
+                    {copied === i ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

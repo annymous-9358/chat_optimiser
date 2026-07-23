@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const OCCASIONS = [
   'Birthday', 'Anniversary', 'Wedding', 'Christmas',
@@ -140,7 +143,10 @@ export default function GiftMessageTab({ loadSession, onSessionLoaded }: Props) 
       </div>
 
       <div>
-        <div className="tc-label">What to say <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>(optional)</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>What to say <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: 11 }}>(optional)</span></div>
+          <VoiceInput onResult={(t) => setPersonalNote(n => n ? n + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           className="tc-textarea"
           rows={3}
@@ -184,11 +190,15 @@ export default function GiftMessageTab({ loadSession, onSessionLoaded }: Props) 
                   <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--tc-muted)' }}>{i + 1}</span>
                 </div>
                 <p style={{ flex: 1, fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-line' }}>{msg}</p>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(msg); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
-                  className={`tc-copy${copied === i ? ' copied' : ''}`}>
-                  {copied === i ? 'Copied' : 'Copy'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <SpeakButton text={msg} />
+                  <ShareButton text={msg} title="Convey" />
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(msg); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
+                    className={`tc-copy${copied === i ? ' copied' : ''}`}>
+                    {copied === i ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

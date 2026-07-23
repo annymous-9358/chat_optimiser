@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const TONES = [
   { id: 'professional', label: 'Professional' },
@@ -98,7 +101,10 @@ export default function EmailWriterTab({ loadSession, onSessionLoaded }: Props) 
       </div>
 
       <div>
-        <div className="tc-label">What is this email about?</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>What is this email about?</div>
+          <VoiceInput onResult={(t) => setPurpose(p => p ? p + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           className="tc-textarea"
           rows={3}
@@ -206,7 +212,11 @@ export default function EmailWriterTab({ loadSession, onSessionLoaded }: Props) 
           <div style={{ border: '1px solid var(--tc-border)', borderRadius: 8, background: 'var(--tc-card)', padding: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div className="tc-label" style={{ marginBottom: 0 }}>Email body</div>
-              <CopyBtn text={result.body} label="Copy body" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SpeakButton text={result.body} />
+                <ShareButton text={result.body} title="Convey" />
+                <CopyBtn text={result.body} label="Copy body" />
+              </div>
             </div>
             <p style={{ fontSize: 14, color: 'var(--tc-text)', lineHeight: 1.72, margin: 0, whiteSpace: 'pre-line' }}>{result.body}</p>
           </div>

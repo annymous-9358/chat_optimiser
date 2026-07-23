@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type Task = { text: string; hours: string };
@@ -691,7 +693,9 @@ export default function StandupTab({ loadSession, onSessionLoaded }: Props) {
                     </span>
                   )}
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-2 flex-wrap items-center">
+                  <SpeakButton text={formatted} />
+                  <ShareButton text={formatted} title="Convey" />
                   <button
                     onClick={handleCopy}
                     className={`text-xs font-medium px-3 py-1.5 rounded-md border transition ${

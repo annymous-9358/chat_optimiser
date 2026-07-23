@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const ACTIONS = [
   { id: 'shorten', label: 'Shorten',       desc: 'Cut the fluff' },
@@ -74,7 +77,10 @@ export default function PolishTab({ loadSession, onSessionLoaded }: Props) {
       </div>
 
       <div>
-        <div className="tc-label">Message</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Message</div>
+          <VoiceInput onResult={(t) => setMessage(m => m ? m + ' ' + t : t)} disabled={!!loading} />
+        </div>
         <div style={{ position: 'relative' }}>
           <textarea
             className="tc-textarea"
@@ -133,7 +139,9 @@ export default function PolishTab({ loadSession, onSessionLoaded }: Props) {
           <div className="tc-label">Result</div>
           <div style={{ border: '1px solid var(--tc-border)', borderRadius: 8, background: 'var(--tc-card)', padding: 20 }}>
             <p style={{ fontSize: 14, color: 'var(--tc-text)', lineHeight: 1.72, margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'var(--font-geist-mono), monospace' }}>{result}</p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+              <SpeakButton text={result} />
+              <ShareButton text={result} title="Convey" />
               <button
                 onClick={() => { setMessage(result); setResult(''); setActiveAction(''); }}
                 style={{ fontSize: 12, padding: '5px 12px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', color: 'var(--tc-sec)', cursor: 'pointer', fontFamily: 'inherit' }}>

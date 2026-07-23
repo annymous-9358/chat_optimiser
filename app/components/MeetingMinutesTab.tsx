@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const MEETING_TYPES = ['Standup', 'Client Call', 'Planning', '1:1', 'General'];
 
@@ -131,7 +134,10 @@ export default function MeetingMinutesTab({ loadSession, onSessionLoaded }: Prop
         <p className="tc-desc">Paste raw, messy meeting notes or a rough transcript — get back clean, structured minutes with decisions and action items.</p>
       </div>
 
-      <div className="tc-label">Raw meeting notes</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div className="tc-label" style={{ marginBottom: 0 }}>Raw meeting notes</div>
+        <VoiceInput onResult={(t) => setNotes(m => m ? m + ' ' + t : t)} disabled={loading} />
+      </div>
       <textarea
         className="tc-textarea"
         rows={8}
@@ -163,9 +169,13 @@ export default function MeetingMinutesTab({ loadSession, onSessionLoaded }: Prop
           <div className="tc-result-card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span className="tc-label" style={{ margin: 0 }}>Summary</span>
-              <button onClick={handleCopy} className="tc-copy-btn">
-                {copied ? '✓ Copied' : 'Copy full minutes'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <SpeakButton text={formatMinutes(meetingType, result)} />
+                <ShareButton text={formatMinutes(meetingType, result)} title="Convey" />
+                <button onClick={handleCopy} className="tc-copy-btn">
+                  {copied ? '✓ Copied' : 'Copy full minutes'}
+                </button>
+              </div>
             </div>
             <p style={{ fontSize: 13, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
               {result.summary}

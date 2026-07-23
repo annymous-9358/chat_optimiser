@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const PLATFORMS = ['Claude Code', 'Cursor', 'GitHub Copilot', 'VS Code', 'General / API'];
 const SPECIALIZATIONS = ['Code Review', 'Debugging', 'Documentation', 'Testing', 'Refactoring', 'Architecture', 'Full-Stack Dev', 'Data Analysis', 'Security Audit', 'Custom'];
@@ -94,7 +97,10 @@ export default function AgentGeneratorTab({ loadSession, onSessionLoaded }: Prop
         <p className="tc-desc">Describe what you want your AI agent to do — get a complete, ready-to-use agent definition for Claude Code, Cursor, Copilot, or any LLM API.</p>
       </div>
 
-      <div className="tc-label">What should this agent do?</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div className="tc-label" style={{ marginBottom: 0 }}>What should this agent do?</div>
+        <VoiceInput onResult={(t) => setDescription(d => d ? d + ' ' + t : t)} disabled={loading} />
+      </div>
       <textarea
         className="tc-textarea"
         rows={4}
@@ -143,9 +149,13 @@ export default function AgentGeneratorTab({ loadSession, onSessionLoaded }: Prop
                   </span>
                 )}
               </div>
-              <button onClick={handleCopy} className="tc-copy-btn">
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <SpeakButton text={result.definition} />
+                <ShareButton text={result.definition} title="Convey" />
+                <button onClick={handleCopy} className="tc-copy-btn">
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
             <pre style={{
               fontSize: 11, color: 'var(--tc-text)', lineHeight: 1.65, margin: 0,

@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const PURPOSES = ['Coding', 'Writing', 'Analysis', 'Research', 'Creative', 'Business', 'Learning', 'Data', 'Design', 'Other'];
 const PLATFORMS = ['Claude', 'ChatGPT / GPT-4', 'Gemini', 'Cursor', 'GitHub Copilot', 'General LLM'];
@@ -94,7 +97,10 @@ export default function PromptEnhancerTab({ loadSession, onSessionLoaded }: Prop
         <p className="tc-desc">Write a rough prompt, pick your target platform and style — get back an optimised version that gets dramatically better AI results.</p>
       </div>
 
-      <div className="tc-label">Your prompt</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div className="tc-label" style={{ marginBottom: 0 }}>Your prompt</div>
+        <VoiceInput onResult={(t) => setPrompt(p => p ? p + ' ' + t : t)} disabled={loading} />
+      </div>
       <textarea
         className="tc-textarea"
         rows={5}
@@ -123,9 +129,13 @@ export default function PromptEnhancerTab({ loadSession, onSessionLoaded }: Prop
           <div className="tc-result-card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span className="tc-label" style={{ margin: 0 }}>Enhanced prompt</span>
-              <button onClick={handleCopy} className="tc-copy-btn">
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <SpeakButton text={result.enhanced} />
+                <ShareButton text={result.enhanced} title="Convey" />
+                <button onClick={handleCopy} className="tc-copy-btn">
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
             <p style={{ fontSize: 13, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
               {result.enhanced}

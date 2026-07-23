@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 type Analysis = {
   primary: string;
@@ -38,6 +41,7 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
   const [animate,  setAnimate]  = useState(false);
+  const [copied,   setCopied]   = useState(false);
 
   useEffect(() => {
     if (!loadSession) return;
@@ -81,7 +85,10 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
       </div>
 
       <div>
-        <div className="tc-label">Message to analyse</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Message to analyse</div>
+          <VoiceInput onResult={(t) => setMessage(m => m ? m + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           className="tc-textarea"
           rows={5}
@@ -115,14 +122,25 @@ export default function ToneAnalyzerTab({ loadSession, onSessionLoaded }: Props)
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Primary + verdict */}
           <div style={{ border: '1px solid var(--tc-border)', borderRadius: 8, background: 'var(--tc-card)', padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-              <div className="tc-label" style={{ marginBottom: 0 }}>Primary tone</div>
-              <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-accent)', color: 'var(--tc-on)' }}>
-                {analysis.primary}
-              </span>
-              {analysis.tags?.map(tag => (
-                <span key={tag} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', color: 'var(--tc-sec)' }}>{tag}</span>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div className="tc-label" style={{ marginBottom: 0 }}>Primary tone</div>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-accent)', color: 'var(--tc-on)' }}>
+                  {analysis.primary}
+                </span>
+                {analysis.tags?.map(tag => (
+                  <span key={tag} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 4, border: '1px solid var(--tc-border)', background: 'var(--tc-chip)', color: 'var(--tc-sec)' }}>{tag}</span>
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <SpeakButton text={analysis.verdict} />
+                <ShareButton text={analysis.verdict} title="Convey" />
+                <button
+                  onClick={() => { navigator.clipboard.writeText(analysis.verdict); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                  className={`tc-copy${copied ? ' copied' : ''}`}>
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
             <p style={{ fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0 }}>{analysis.verdict}</p>
           </div>

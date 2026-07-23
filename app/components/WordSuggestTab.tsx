@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const CATEGORIES = ['Feeling / Emotion', 'Person / Character', 'Place / Scene', 'Moment / Time', 'Action / Event', 'Object / Thing', 'Concept / Idea', 'Literary / Poetic'];
 const OUTPUT_LANGS = ['English', 'Hindi', 'Both'];
@@ -91,7 +94,10 @@ export default function WordSuggestTab({ loadSession, onSessionLoaded }: Props) 
       </div>
 
       <div>
-        <div className="tc-label">Describe what you're looking for</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Describe what you're looking for</div>
+          <VoiceInput onResult={(t) => setDescription(d => d ? d + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           className="tc-textarea"
           rows={5}
@@ -168,9 +174,13 @@ export default function WordSuggestTab({ loadSession, onSessionLoaded }: Props) 
                           </span>
                         )}
                       </div>
-                      <button onClick={() => handleCopy(w.word)} className="tc-copy-btn">
-                        {copied === w.word ? '✓ Copied' : 'Copy'}
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                        <SpeakButton text={`${w.word}. ${w.meaning}${w.example ? `. Example: ${w.example}` : ''}`} />
+                        <ShareButton text={`${w.word} — ${w.meaning}${w.example ? `\n"${w.example}"` : ''}`} title="Convey" />
+                        <button onClick={() => handleCopy(w.word)} className="tc-copy-btn">
+                          {copied === w.word ? '✓ Copied' : 'Copy'}
+                        </button>
+                      </div>
                     </div>
 
                     <p style={{ fontSize: 13, color: 'var(--tc-text)', lineHeight: 1.65, margin: '0 0 6px' }}>

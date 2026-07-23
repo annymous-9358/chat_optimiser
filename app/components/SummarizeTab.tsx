@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const LENGTHS = ['Short', 'Medium', 'Detailed'];
 const FORMATS = ['Bullets', 'Paragraph'];
@@ -85,8 +88,8 @@ export default function SummarizeTab({ loadSession, onSessionLoaded }: Props) {
     }
   }, [text, length, format, saveEntry]);
 
-  const handleCopy = () => {
-    if (!result) return;
+  const buildCombinedText = () => {
+    if (!result) return '';
     const bulletLines = result.summary
       .split('\n')
       .map(l => l.trim())
@@ -97,7 +100,12 @@ export default function SummarizeTab({ loadSession, onSessionLoaded }: Props) {
     const keyPointsText = result.keyPoints?.length
       ? `\n\nKey points:\n${result.keyPoints.map(k => `• ${k}`).join('\n')}`
       : '';
-    const combined = `${result.tldr}\n\n${summaryText}${keyPointsText}`;
+    return `${result.tldr}\n\n${summaryText}${keyPointsText}`;
+  };
+
+  const handleCopy = () => {
+    if (!result) return;
+    const combined = buildCombinedText();
     navigator.clipboard.writeText(combined);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
@@ -115,7 +123,10 @@ export default function SummarizeTab({ loadSession, onSessionLoaded }: Props) {
       </div>
 
       <div>
-        <div className="tc-label">Text to summarize</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Text to summarize</div>
+          <VoiceInput onResult={(t) => setText(m => m ? m + ' ' + t : t)} disabled={loading} />
+        </div>
         <textarea
           className="tc-textarea"
           rows={8}
@@ -146,9 +157,13 @@ export default function SummarizeTab({ loadSession, onSessionLoaded }: Props) {
           <div className="tc-result-card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <span className="tc-label" style={{ margin: 0 }}>TL;DR</span>
-              <button onClick={handleCopy} className="tc-copy-btn">
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <SpeakButton text={buildCombinedText()} />
+                <ShareButton text={buildCombinedText()} title="Convey" />
+                <button onClick={handleCopy} className="tc-copy-btn">
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--tc-text)', lineHeight: 1.6, margin: '0 0 16px' }}>
               {result.tldr}

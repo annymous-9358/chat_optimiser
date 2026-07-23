@@ -8,7 +8,7 @@ interface Props {
   className?: string;
 }
 
-export default function ShareButton({ text, title = 'ToneCraft', className = '' }: Props) {
+export default function ShareButton({ text, title = 'Convey', className = '' }: Props) {
   const [done, setDone] = useState(false);
 
   const handleShare = useCallback(async () => {

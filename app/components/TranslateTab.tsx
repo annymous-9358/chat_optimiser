@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const LANGUAGES = ['Spanish', 'French', 'German', 'Hindi', 'Japanese', 'Chinese (Simplified)', 'Korean', 'Portuguese', 'Italian', 'Arabic', 'Russian', 'Bengali', 'Tamil', 'Marathi'];
 const FORMALITIES = ['Neutral', 'Formal', 'Casual'];
@@ -98,7 +101,10 @@ export default function TranslateTab({ loadSession, onSessionLoaded }: Props) {
         <p className="tc-desc">Paste text in any language and get a natural, fluent translation — not a robotic word-for-word one.</p>
       </div>
 
-      <div className="tc-label">Text to translate</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div className="tc-label" style={{ marginBottom: 0 }}>Text to translate</div>
+        <VoiceInput onResult={(t) => setText(m => m ? m + ' ' + t : t)} disabled={loading} />
+      </div>
       <textarea
         className="tc-textarea"
         rows={5}
@@ -131,9 +137,13 @@ export default function TranslateTab({ loadSession, onSessionLoaded }: Props) {
                   </span>
                 )}
               </span>
-              <button onClick={handleCopy} className="tc-copy-btn">
-                {copied ? '✓ Copied' : 'Copy'}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <SpeakButton text={result.translation} />
+                <ShareButton text={result.translation} title="Convey" />
+                <button onClick={handleCopy} className="tc-copy-btn">
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
             <p style={{ fontSize: 16, color: 'var(--tc-text)', lineHeight: 1.7, margin: 0, whiteSpace: 'pre-wrap' }}>
               {result.translation}

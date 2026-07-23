@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useHistory, HistoryEntry } from '../context/HistoryContext';
+import VoiceInput from './VoiceInput';
+import SpeakButton from './SpeakButton';
+import ShareButton from './ShareButton';
 
 const STRATEGIES = ['Direct', 'Question', 'Benefit', 'Conversational', 'Intriguing'];
 
@@ -80,7 +83,10 @@ export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props)
       </div>
 
       <div>
-        <div className="tc-label">Email body</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <div className="tc-label" style={{ marginBottom: 0 }}>Email body</div>
+          <VoiceInput onResult={(t) => setBody(m => m ? m + ' ' + t : t)} disabled={loading} />
+        </div>
         <div style={{ position: 'relative' }}>
           <textarea
             className="tc-textarea"
@@ -143,6 +149,8 @@ export default function EmailSubjectTab({ loadSession, onSessionLoaded }: Props)
                 <p style={{ flex: 1, fontSize: 13.5, color: 'var(--tc-text)', lineHeight: 1.5, margin: 0, fontWeight: 500 }}>{s}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                   <span style={{ fontSize: 10, color: s.length > 60 ? '#d97706' : 'var(--tc-muted)', fontFamily: 'var(--font-geist-mono), monospace' }}>{s.length}</span>
+                  <SpeakButton text={s} />
+                  <ShareButton text={s} title="Convey" />
                   <button onClick={() => { navigator.clipboard.writeText(s); setCopied(i); setTimeout(() => setCopied(null), 2000); }}
                     className={`tc-copy${copied === i ? ' copied' : ''}`}>
                     {copied === i ? 'Copied' : 'Copy'}
