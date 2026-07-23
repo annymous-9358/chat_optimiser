@@ -94,8 +94,8 @@ export default function WordSuggestTab({ loadSession, onSessionLoaded }: Props) 
         <div className="tc-label">Describe what you're looking for</div>
         <textarea
           className="tc-textarea"
-          rows={4}
-          placeholder={`e.g. "woh feeling jab tum kisi ko miss karo but unhe batana nahi chahte"\nor "that bittersweet feeling of nostalgia for a time that may never have existed"\nor "a word for someone who pretends to be happy but is sad inside"`}
+          rows={5}
+          placeholder={`e.g. "a word for someone who pretends to be happy but is sad inside"\nor "that bittersweet feeling of missing a time that may never have existed"`}
           value={description}
           onChange={e => setDescription(e.target.value)}
           onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') handleFind(); }}

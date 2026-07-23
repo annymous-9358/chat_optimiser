@@ -125,7 +125,7 @@ export default function EmailWriterTab({ loadSession, onSessionLoaded }: Props) 
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 500, color: 'var(--tc-muted)', marginBottom: 5 }}>Your name</div>
-            <input className="tc-input" type="text" value={senderName} onChange={e => setSenderName(e.target.value)} placeholder="e.g. Kunik…" />
+            <input className="tc-input" type="text" value={senderName} onChange={e => setSenderName(e.target.value)} placeholder="e.g. Alex…" />
           </div>
         </div>
       </div>
