@@ -47,7 +47,7 @@ Output language preference: ${outputLang}
 Understand my description and suggest the most fitting words.`;
 
     const response = await client.chat.completions.create({
-      model: 'moonshotai/kimi-k2-instruct',
+      model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },

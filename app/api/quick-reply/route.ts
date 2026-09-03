@@ -29,7 +29,7 @@ ${context?.trim() ? `\nExtra context: ${context.trim()}` : ''}
 Write 3 different replies I could send back.`;
 
     const response = await client.chat.completions.create({
-      model: 'moonshotai/kimi-k2-instruct',
+      model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

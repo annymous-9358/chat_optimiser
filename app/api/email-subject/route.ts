@@ -48,7 +48,7 @@ ${body.trim().slice(0, 2000)}
 Return ["subject 1", "subject 2", "subject 3", "subject 4", "subject 5"]`;
 
     const response = await client.chat.completions.create({
-      model: 'moonshotai/kimi-k2-instruct',
+      model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user',   content: userPrompt },

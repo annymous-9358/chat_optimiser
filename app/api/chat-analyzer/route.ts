@@ -53,7 +53,7 @@ Return ONLY valid JSON. No markdown, no extra text.`;
       const userPrompt = `Analyse this chat export:\n\n${chat}`;
 
       const response = await client.chat.completions.create({
-        model: 'moonshotai/kimi-k2-instruct',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -100,7 +100,7 @@ No markdown, no explanation, nothing else.`;
     const userPrompt = `Chat history for context:\n${chat}\n\n${otherPersonNote}\n\nWhat I want to say / purpose: ${purpose.trim()}\nTone: ${selectedTone}\n\nWrite 3 versions of the message I should send next.`;
 
     const response = await client.chat.completions.create({
-      model: 'moonshotai/kimi-k2-instruct',
+      model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

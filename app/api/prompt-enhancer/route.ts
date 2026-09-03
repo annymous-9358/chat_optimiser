@@ -34,7 +34,7 @@ Rules:
 - The enhanced prompt should feel like it was written by someone who does this professionally`;
 
     const response = await client.chat.completions.create({
-      model: 'moonshotai/kimi-k2-instruct',
+      model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },
