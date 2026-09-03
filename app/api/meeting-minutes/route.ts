@@ -38,7 +38,7 @@ ${notes.trim()}
 Produce clean, structured meeting minutes from these notes, formatted appropriately for a "${meetingType || 'General'}" meeting.`;
 
     const response = await client.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'moonshotai/kimi-k2-instruct',
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },

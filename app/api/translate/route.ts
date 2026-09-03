@@ -46,7 +46,7 @@ Return ONLY valid JSON — no markdown, no explanation outside the JSON:
 "${text.trim()}"`;
 
     const response = await client.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'moonshotai/kimi-k2-instruct',
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },

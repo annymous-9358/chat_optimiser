@@ -29,7 +29,7 @@ Return ONLY valid JSON in this exact shape:
 Scores can overlap (a message can be both casual and emotional). Be accurate, not flattering.`;
 
     const response = await client.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'moonshotai/kimi-k2-instruct',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Analyze this message:\n\n"${message.trim()}"` },

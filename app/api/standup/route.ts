@@ -105,7 +105,7 @@ ${tTasks.map((t) => fmtTaskLine(t, true)).join('\n') || '- Nothing to report'}
 Blockers: ${blockers?.trim() || 'None'}`;
 
     const response = await client.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'moonshotai/kimi-k2-instruct',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

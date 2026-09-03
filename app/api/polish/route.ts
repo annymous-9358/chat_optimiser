@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (!action || !ACTIONS[action]) return Response.json({ error: 'Invalid action' }, { status: 400 });
 
     const response = await client.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'moonshotai/kimi-k2-instruct',
       messages: [
         {
           role: 'system',
