@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 
-export default function HomeHeader({ onPricing }: { onPricing: () => void }) {
+export default function HomeHeader({ onPricing }: { onPricing?: () => void }) {
   const { user, loading } = useAuth();
 
   return (
@@ -21,10 +21,13 @@ export default function HomeHeader({ onPricing }: { onPricing: () => void }) {
 
       <nav style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <Link href="/tools" style={{ fontSize: 13, color: '#57534e', textDecoration: 'none' }}>All tools</Link>
-        <button onClick={onPricing}
-          style={{ fontSize: 13, color: '#57534e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-          Pricing
-        </button>
+
+        {onPricing && (
+          <button onClick={onPricing}
+            style={{ fontSize: 13, color: '#57534e', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+            Pricing
+          </button>
+        )}
 
         {loading ? (
           <div style={{ width: 80, height: 34, borderRadius: 8, background: '#f0f0f0', animation: 'pulse 1.2s ease-in-out infinite' }} />
