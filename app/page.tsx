@@ -157,9 +157,34 @@ export default function HomePage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
           {[
-            { name: 'Starter', price: 49, badge: null, perks: ['50 uses/month', 'All 16 tools', 'AI Assistant', '7-day history'], color: '#6366f1', highlight: false },
-            { name: 'Pro', price: 69, badge: 'Most Popular', perks: ['Unlimited uses', 'All 16 tools', 'AI Assistant (full)', '90-day history', 'Priority processing'], color: '#7c3aed', highlight: true },
-            { name: 'Team', price: 99, badge: null, perks: ['Everything in Pro', '5 team members', 'Shared sessions', 'API access'], color: '#0f172a', highlight: false },
+            {
+              name: 'Free', price: null, badge: null, color: '#78716c', highlight: false,
+              cta: 'Use for free', ctaBg: '#f5f5f4', ctaColor: '#57534e',
+              perks: [
+                { t: '5 uses per day', s: 'resets at midnight' },
+                { t: 'All 16 AI writing tools' },
+                { t: 'AI Assistant — basic', s: 'short answers, no file upload' },
+              ],
+            },
+            {
+              name: 'Starter', price: 49, badge: null, color: '#6366f1', highlight: false,
+              cta: 'Get Starter', ctaBg: '#18181b', ctaColor: '#fff',
+              perks: [
+                { t: '50 uses per month', s: 'resets on the 1st' },
+                { t: 'All 16 AI writing tools' },
+                { t: 'AI Assistant — basic', s: 'short answers, no file upload' },
+              ],
+            },
+            {
+              name: 'Pro', price: 69, badge: 'Most Popular', color: '#7c3aed', highlight: true,
+              cta: 'Get Pro', ctaBg: '#7c3aed', ctaColor: '#fff',
+              perks: [
+                { t: 'Unlimited uses', s: 'no daily or monthly cap' },
+                { t: 'All 16 AI writing tools' },
+                { t: 'AI Assistant — full', s: 'detailed answers + file upload' },
+                { t: 'File upload support', s: '.txt .csv .json .md and more' },
+              ],
+            },
           ].map(plan => (
             <div key={plan.name} style={{
               borderRadius: 16, padding: '28px 24px',
@@ -174,18 +199,27 @@ export default function HomePage() {
               )}
               <div style={{ fontSize: 12, fontWeight: 700, color: plan.color, textTransform: 'uppercase' as const, letterSpacing: '.06em', marginBottom: 8 }}>{plan.name}</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginBottom: 20 }}>
-                <span style={{ fontSize: 13, color: '#78716c' }}>₹</span>
-                <span style={{ fontSize: 40, fontWeight: 900, color: '#1c1917', letterSpacing: '-.03em', lineHeight: 1 }}>{plan.price}</span>
-                <span style={{ fontSize: 13, color: '#78716c' }}>/mo</span>
+                {plan.price === null ? (
+                  <span style={{ fontSize: 34, fontWeight: 900, color: '#1c1917', letterSpacing: '-.02em', lineHeight: 1 }}>Free</span>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 13, color: '#78716c' }}>₹</span>
+                    <span style={{ fontSize: 40, fontWeight: 900, color: '#1c1917', letterSpacing: '-.03em', lineHeight: 1 }}>{plan.price}</span>
+                    <span style={{ fontSize: 13, color: '#78716c' }}>/mo</span>
+                  </>
+                )}
               </div>
-              <Link href="/app" style={{ display: 'block', textAlign: 'center', fontSize: 13, fontWeight: 700, textDecoration: 'none', padding: '10px 16px', borderRadius: 10, marginBottom: 20, background: plan.highlight ? plan.color : '#18181b', color: '#fff' }}>
-                Get {plan.name}
+              <Link href="/app" style={{ display: 'block', textAlign: 'center', fontSize: 13, fontWeight: 700, textDecoration: 'none', padding: '10px 16px', borderRadius: 10, marginBottom: 20, background: plan.ctaBg, color: plan.ctaColor }}>
+                {plan.cta}
               </Link>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {plan.perks.map(perk => (
-                  <div key={perk} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#57534e' }}>
-                    <svg style={{ width: 14, height: 14, flexShrink: 0, color: plan.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    {perk}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {plan.perks.map((perk, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <svg style={{ width: 13, height: 13, flexShrink: 0, marginTop: 3, color: plan.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <div>
+                      <div style={{ fontSize: 13, color: '#1c1917', fontWeight: 500 }}>{perk.t}</div>
+                      {'s' in perk && <div style={{ fontSize: 11, color: '#a8a29e', marginTop: 1 }}>{perk.s}</div>}
+                    </div>
                   </div>
                 ))}
               </div>
