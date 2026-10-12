@@ -1,5 +1,6 @@
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
+import { checkAndLogUsage } from '../_limits';
 
 const TOOL_KNOWLEDGE = `
 You have direct access to all 16 Convey tools. Here's what each does:
@@ -60,6 +61,11 @@ IMPORTANT:
 
 export async function POST(req: NextRequest) {
   try {
+    const limitResult = await checkAndLogUsage('assistant');
+    if (!limitResult.allowed) {
+      return Response.json({ error: limitResult.message, plan: limitResult.plan, upgrade: true }, { status: 429 });
+    }
+
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { messages, fileContent } = await req.json() as {
       messages: { role: 'user' | 'assistant'; content: string }[];
@@ -70,8 +76,10 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Messages are required' }, { status: 400 });
     }
 
-    // If there's a file, prepend its content to the last user message
-    const processedMessages = fileContent
+    const isBasic = limitResult.assistantMode === 'basic';
+
+    // Basic mode: no file upload, shorter responses
+    const processedMessages = (!isBasic && fileContent)
       ? messages.map((m, i) =>
           i === messages.length - 1 && m.role === 'user'
             ? { ...m, content: `[Uploaded file content]\n${fileContent}\n\n[User's request]\n${m.content}` }
@@ -79,13 +87,17 @@ export async function POST(req: NextRequest) {
         )
       : messages;
 
+    const systemPrompt = isBasic
+      ? SYSTEM_PROMPT + '\n\nIMPORTANT: Keep responses concise (under 150 words). For complex tasks, suggest upgrading to Pro for full capabilities.'
+      : SYSTEM_PROMPT;
+
     const stream = await client.chat.completions.create({
       model: 'openai/gpt-oss-120b',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         ...processedMessages,
       ],
-      max_tokens: 2048,
+      max_tokens: isBasic ? 512 : 2048,
       temperature: 0.7,
       stream: true,
     });
@@ -94,6 +106,8 @@ export async function POST(req: NextRequest) {
     const readable = new ReadableStream({
       async start(controller) {
         try {
+          // Send plan metadata as first event
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ meta: { plan: limitResult.plan, mode: limitResult.assistantMode, remaining: limitResult.remaining } })}\n\n`));
           for await (const chunk of stream) {
             const text = chunk.choices[0]?.delta?.content ?? '';
             if (text) {

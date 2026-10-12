@@ -1,3 +1,4 @@
+import { checkAndLogUsage } from '../_limits';
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 
@@ -12,6 +13,8 @@ const ACTIONS: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const limitResult = await checkAndLogUsage('polish');
+    if (!limitResult.allowed) return Response.json({ error: limitResult.message, plan: limitResult.plan }, { status: 429 });
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { message, action } = await request.json();
     if (!message?.trim()) return Response.json({ error: 'Message is required' }, { status: 400 });

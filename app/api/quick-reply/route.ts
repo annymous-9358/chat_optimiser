@@ -1,9 +1,12 @@
+import { checkAndLogUsage } from '../_limits';
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 import { parseJSONArray } from '../_utils';
 
 export async function POST(request: NextRequest) {
   try {
+    const limitResult = await checkAndLogUsage('quick-reply');
+    if (!limitResult.allowed) return Response.json({ error: limitResult.message, plan: limitResult.plan }, { status: 429 });
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { receivedMessage, relationship, context } = await request.json();
 

@@ -1,3 +1,4 @@
+import { checkAndLogUsage } from '../_limits';
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 import { parseJSONArray, parseJSONObject } from '../_utils';
@@ -15,6 +16,8 @@ function trimChat(text: string, maxChars = 6000): string {
 // mode = 'generate' → craft a reply/message based on chat context
 export async function POST(request: NextRequest) {
   try {
+    const limitResult = await checkAndLogUsage('chat-insights');
+    if (!limitResult.allowed) return Response.json({ error: limitResult.message, plan: limitResult.plan }, { status: 429 });
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const body = await request.json();
     const { chatText, mode, purpose, tone, otherPerson } = body;

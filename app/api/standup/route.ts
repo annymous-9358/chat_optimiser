@@ -1,3 +1,4 @@
+import { checkAndLogUsage } from '../_limits';
 import Groq from 'groq-sdk';
 import { NextRequest } from 'next/server';
 
@@ -82,6 +83,8 @@ Output:
 
 export async function POST(request: NextRequest) {
   try {
+    const limitResult = await checkAndLogUsage('standup');
+    if (!limitResult.allowed) return Response.json({ error: limitResult.message, plan: limitResult.plan }, { status: 429 });
     const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const { yesterdayTasks, todayTasks, blockers, project, dateLabel, format = 'standard' } = await request.json();
 
