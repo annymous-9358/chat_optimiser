@@ -14,6 +14,7 @@ interface ToolEntry {
 // Keyed by the public URL slug (/app/[slug]) — same slug used on /tools/[slug].
 // Each component is lazily loaded so visiting one tool doesn't pull in the other 15.
 export const TOOL_COMPONENTS: Record<string, ToolEntry> = {
+  'assistant':       { type: 'assistant',       Component: dynamic(() => import('../components/AiAssistantTab')) },
   'rephrase':        { type: 'rephrase',       Component: dynamic(() => import('../components/RephraseTab')) },
   'quick-reply':     { type: 'quickreply',     Component: dynamic(() => import('../components/QuickReplyTab')) },
   'tone-checker':    { type: 'analyzer',       Component: dynamic(() => import('../components/ToneAnalyzerTab')) },
@@ -32,4 +33,4 @@ export const TOOL_COMPONENTS: Record<string, ToolEntry> = {
   'meeting-minutes': { type: 'meetingminutes', Component: dynamic(() => import('../components/MeetingMinutesTab')) },
 };
 
-export const DEFAULT_TOOL_SLUG = 'rephrase';
+export const DEFAULT_TOOL_SLUG = 'assistant';

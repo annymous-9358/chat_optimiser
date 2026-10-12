@@ -19,6 +19,7 @@ export interface ToolMeta {
 
 // Display order for category sections on /tools and the home page.
 export const CATEGORY_ORDER = [
+  "AI Assistant",
   "Rewrite & Tone",
   "Replies & Conversations",
   "Email",
@@ -29,6 +30,28 @@ export const CATEGORY_ORDER = [
 ];
 
 export const TOOLS: ToolMeta[] = [
+  {
+    slug: "assistant",
+    category: "AI Assistant",
+    tab: "assistant",
+    label: "AI Assistant",
+    tagline: "Describe your need — get it solved or routed to the right tool",
+    metaDescription: "Convey's AI Assistant understands your writing need, solves it directly in chat, uploads files, and routes you to the right tool when needed.",
+    description: "The AI Assistant is your smart entry point into all 16 Convey tools. Describe what you need in plain language — rephrase a message, write an email, summarize a doc, check a tone — and the assistant either solves it directly in chat or opens the right tool with context already filled in. Upload any text file and the assistant works with its content.",
+    icon: "M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z",
+    keywords: ["AI writing assistant", "smart writing helper", "AI chat assistant", "writing tool AI", "convey assistant"],
+    bullets: [
+      "Chat naturally about any writing task — no need to know which tool to pick",
+      "Solves tasks directly in chat: rephrasing, emails, summaries, replies, and more",
+      "Upload .txt, .csv, .json, or .md files and work with the content",
+      "Suggests the right Convey tool when it would give you more options",
+    ],
+    faq: [
+      { q: "Can the assistant actually do the writing tasks, or does it just point to tools?", a: "It does both — it solves tasks directly in chat first, then offers to open a specific tool if you want more options or variations." },
+      { q: "What file types can I upload?", a: "Plain text files: .txt, .csv, .json, .md, .html, .xml, and .log." },
+      { q: "Does it remember what I said earlier in the conversation?", a: "Yes, within a session the assistant keeps the full conversation context so follow-up questions and edits work naturally." },
+    ],
+  },
   {
     slug: "rephrase",
     category: "Rewrite & Tone",
