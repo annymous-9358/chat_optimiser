@@ -245,6 +245,11 @@ export default function HomePage() {
       </section>
 
       <footer style={{ borderTop: '1px solid #e7e5e0', padding: '32px 24px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+          <Link href="/tools" style={{ fontSize: 12, color: '#a8a29e', textDecoration: 'none' }}>All tools</Link>
+          <Link href="/privacy" style={{ fontSize: 12, color: '#a8a29e', textDecoration: 'none' }}>Privacy Policy</Link>
+          <Link href="/terms" style={{ fontSize: 12, color: '#a8a29e', textDecoration: 'none' }}>Terms of Service</Link>
+        </div>
         <p style={{ fontSize: 12, color: '#a8a29e', margin: 0 }}>© {new Date().getFullYear()} Convey. Free AI writing assistant.</p>
       </footer>
     </div>
